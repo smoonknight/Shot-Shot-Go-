@@ -21,9 +21,9 @@ public abstract class CharacterControllerBase : MonoBehaviour
     [SerializeField]
     protected float jumpBufferTime = 0.15f;
     [SerializeField]
-    protected float fallMultiplier = 2f;
+    protected float fallMultiplier = 1f;
     [SerializeField]
-    protected float lowJumpMultiplier = 3f;
+    protected float lowJumpMultiplier = 2f;
 
     [Header("Ground Check")]
     [SerializeField]
@@ -35,37 +35,71 @@ public abstract class CharacterControllerBase : MonoBehaviour
     [SerializeField]
     protected Animator animator;
 
+    [Header("Wall Hang")]
+    [SerializeField]
+    protected float wallCheckDistance = 0.5f;
+    [SerializeField]
+    protected float wallJumpForce = 3;
+
+    float currentVelocityX;
+
     int moveHash;
+
     int isJumpHash;
+    int isWallHangHash;
+
     int jumpHash;
+    int wallHangHash;
+
 
     float lastMoveSmooth;
     float lastJumpSmooth;
+    float lastWallClimbSmooth;
 
-    protected bool latestIsRightDirection = true;
+    protected bool isFacingRight = true;
+    protected bool enableMove = true;
 
     protected const float inertiaRate = 5f;
-
+    const float accelerationSmoothRate = 0.1f;
     const float changeDirectionTime = 0.1f;
 
     private CancellationTokenSource jumpCancellationTokenSource;
+    private CancellationTokenSource forceCancellationTokenSource;
 
     protected virtual void Awake()
     {
         rigidBody.GetComponent<Rigidbody2D>();
 
         moveHash = Animator.StringToHash("Move");
+
         isJumpHash = Animator.StringToHash("Is Jump");
+        isWallHangHash = Animator.StringToHash("Is Wall Hang");
+
         jumpHash = Animator.StringToHash("Jump");
+        wallHangHash = Animator.StringToHash("Wall Hang");
+    }
+
+    protected void Move()
+    {
+        if (!enableMove)
+        {
+            return;
+        }
+        float targetVelocityX = GetMoveTargetVelocityX();
+        float newVelocityX = Mathf.SmoothDamp(rigidBody.linearVelocityX, targetVelocityX, ref currentVelocityX, accelerationSmoothRate);
+
+        rigidBody.linearVelocity = new Vector2(newVelocityX, rigidBody.linearVelocityY);
+        if (targetVelocityX != 0)
+            SetDirection(targetVelocityX > 0);
     }
 
     protected void SetDirection(bool isRightDirection)
     {
-        if (latestIsRightDirection == isRightDirection)
+        if (isFacingRight == isRightDirection)
         {
             return;
         }
-        latestIsRightDirection = isRightDirection;
+        isFacingRight = isRightDirection;
 
         jumpCancellationTokenSource?.Cancel();
         jumpCancellationTokenSource = new();
@@ -78,15 +112,53 @@ public abstract class CharacterControllerBase : MonoBehaviour
 
         float time = 0;
         float targetScaleX = isRightDirection ? 1 : -1;
-        while (time < changeDirectionTime)
+        Vector2 scale;
+        while (time < changeDirectionTime && !cancellationToken.IsCancellationRequested)
         {
             float percentage = time / changeDirectionTime;
-            Vector2 scale = transform.localScale;
+            scale = transform.localScale;
             scale.x = Mathf.Lerp(latestScaleX, targetScaleX, percentage);
             transform.localScale = scale;
             time += Time.deltaTime;
-            await UniTask.Yield(cancellationToken);
+            await UniTask.Yield();
         }
+
+        scale = transform.localScale;
+        scale.x = targetScaleX;
+        transform.localScale = scale;
+    }
+
+    protected bool CheckWall()
+    {
+        Vector2 direction = isFacingRight ? Vector2.right : Vector2.left;
+        return Physics2D.Raycast(transform.position, direction, wallCheckDistance, LayerMaskManager.Instance.wallLayer);
+    }
+
+    protected void SetForce(Vector2 force, float duration, bool changeDirection)
+    {
+        forceCancellationTokenSource?.Cancel();
+        forceCancellationTokenSource = new();
+
+        StartSetForce(force, duration, changeDirection, forceCancellationTokenSource.Token).Forget();
+    }
+
+    private async UniTaskVoid StartSetForce(Vector2 force, float duration, bool changeDirection, CancellationToken cancellationToken)
+    {
+        if (changeDirection)
+            SetDirection(force.x > 0);
+
+        enableMove = false;
+        rigidBody.linearVelocity = Vector2.zero;
+        rigidBody.AddForce(force, ForceMode2D.Impulse);
+
+        float time = 0;
+        while (time < duration && !cancellationToken.IsCancellationRequested)
+        {
+            time += Time.deltaTime;
+            await UniTask.Yield();
+        }
+
+        enableMove = true;
     }
 
     protected void UpdateMoveAnimation()
@@ -96,12 +168,25 @@ public abstract class CharacterControllerBase : MonoBehaviour
     }
     protected void UpdateJumpAnimation(bool isGrounded)
     {
-        animator.SetBool(isJumpHash, !isGrounded);
-        if (isGrounded)
+        UpdateAnimation(isJumpHash, jumpHash, ref lastJumpSmooth, rigidBody.linearVelocity.normalized.y, !isGrounded);
+    }
+
+    protected void UpdateWallHangAnimation(bool isWallHang)
+    {
+        animator.SetBool(isWallHangHash, isWallHang);
+    }
+
+    protected void UpdateAnimation(int isConditionHash, int isValueHash, ref float smoothValue, float targetValue, bool condition)
+    {
+        animator.SetBool(isConditionHash, condition);
+        if (!condition)
         {
+            smoothValue = 0;
             return;
         }
-        lastJumpSmooth = Mathf.Lerp(lastJumpSmooth, rigidBody.linearVelocity.normalized.y, inertiaRate * Time.deltaTime);
-        animator.SetFloat(jumpHash, lastJumpSmooth);
+        smoothValue = Mathf.Lerp(smoothValue, targetValue, inertiaRate * Time.deltaTime);
+        animator.SetFloat(isValueHash, smoothValue);
     }
+
+    protected abstract float GetMoveTargetVelocityX();
 }

@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 1591878342838382661}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -3.76, z: 0}
+  m_LocalPosition: {x: 0.086, y: -1.919, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -39,6 +39,34 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6550761234824477150, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6550761234824477150, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6550761234824477150, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6550761234824477150, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6550761235523395908, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6550761235523395908, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6550761235523395908, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6550761235523395908, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -229,9 +257,9 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.16677928}
-  m_Size: {x: 3.5762043, y: 7.844932}
-  m_Direction: 1
+  m_Offset: {x: 0.09, y: -1.1199802}
+  m_Size: {x: 0.61595, y: 1.6134417}
+  m_Direction: 0
 --- !u!114 &5263312074681046054
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -244,15 +272,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0118f53f6b48b7e44b41b5ac9224a18d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 8
+  moveSpeed: 12
   acceleration: 10
   deceleration: 10
   jumpForce: 12
   coyoteTime: 0.6
   jumpBufferTime: 0.45
-  fallMultiplier: 4
-  lowJumpMultiplier: 3
+  fallMultiplier: 1
+  lowJumpMultiplier: 2
   groundCheck: {fileID: 7300771384673855963}
   groundRadius: 0.2
   rigidBody: {fileID: 2888829323601064518}
   animator: {fileID: 6584453570898085285}
+  wallCheckDistance: 0.5
+  climbSpeed: 5

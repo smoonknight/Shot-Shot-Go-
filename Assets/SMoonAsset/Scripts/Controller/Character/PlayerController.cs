@@ -12,9 +12,8 @@ public class PlayerController : CharacterControllerBase
 
     private PlayerStateMachine playerStateMachine;
 
-    float currentVelocityX;
 
-    const float accelerationSmoothRate = 0.1f;
+    bool isWallHanging;
 
     protected override void Awake()
     {
@@ -27,12 +26,12 @@ public class PlayerController : CharacterControllerBase
 
     private void OnEnable()
     {
-        input.JumpAction.performed += ctx => jumpBufferCounter = jumpBufferTime;
+        input.JumpAction.performed += JumpActionPerformed;
     }
 
     private void OnDisable()
     {
-        input.JumpAction.performed -= ctx => jumpBufferCounter = jumpBufferTime;
+        input.JumpAction.performed -= JumpActionPerformed;
     }
 
     private void Update()
@@ -45,6 +44,22 @@ public class PlayerController : CharacterControllerBase
         playerStateMachine.CurrentState.FixedUpdateState();
     }
 
+    private void JumpActionPerformed(InputAction.CallbackContext context)
+    {
+        if (isWallHanging)
+        {
+            WallJump();
+        }
+        jumpBufferCounter = jumpBufferTime;
+    }
+
+
+    private void WallJump()
+    {
+        Vector2 direction = new(isFacingRight ? -1f : 1f, 1f);
+        SetForce(direction * wallJumpForce, 2f, true);
+    }
+
     private void Jump()
     {
         rigidBody.linearVelocity = new Vector2(rigidBody.linearVelocity.x, jumpForce);
@@ -54,24 +69,34 @@ public class PlayerController : CharacterControllerBase
     private void ApplyBetterJump()
     {
         if (rigidBody.linearVelocity.y < 0)
-            rigidBody.linearVelocityY += (fallMultiplier - 1) * Physics2D.gravity.y * Time.deltaTime;
+            rigidBody.linearVelocityY += fallMultiplier * Physics2D.gravity.y * Time.deltaTime;
         else if (rigidBody.linearVelocity.y > 0 && !input.Jump)
-            rigidBody.linearVelocityY += (lowJumpMultiplier - 1) * Physics2D.gravity.y * Time.deltaTime;
+            rigidBody.linearVelocityY += lowJumpMultiplier * Physics2D.gravity.y * Time.deltaTime;
     }
 
-    private void OnDrawGizmosSelected()
+    private bool ValidateWallHanging()
     {
-        if (groundCheck != null)
+        bool isTouchingWall = CheckWall();
+
+        if (isTouchingWall && (input.Move.x != 0 || !enableMove) && !isGrounded && rigidBody.linearVelocityY <= 0)
         {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(groundCheck.position, groundRadius);
+            return true;
         }
+        return false;
     }
+
+    protected override float GetMoveTargetVelocityX() => input.Move.x * moveSpeed;
 
     #region Play State
+    private void PlayStateEnter()
+    {
+        enableMove = true;
+        rigidBody.constraints = RigidbodyConstraints2D.FreezeRotation;
+    }
+
     private void PlayStateUpdate()
     {
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundRadius, LayerMaskManager.Instance.groundLayer);
+        isGrounded = Physics2D.Raycast(groundCheck.position, Vector2.down, groundRadius, LayerMaskManager.Instance.groundLayer);
 
         if (isGrounded)
             coyoteCounter = coyoteTime;
@@ -86,20 +111,19 @@ public class PlayerController : CharacterControllerBase
             jumpBufferCounter = 0;
         }
 
+        isWallHanging = ValidateWallHanging();
+
         ApplyBetterJump();
 
         UpdateMoveAnimation();
         UpdateJumpAnimation(isGrounded);
+        UpdateWallHangAnimation(isWallHanging);
     }
 
     private void PlayStateFixedUpdate()
     {
-        float targetVelocityX = input.Move.x * moveSpeed;
-        float newVelocityX = Mathf.SmoothDamp(rigidBody.linearVelocityX, targetVelocityX, ref currentVelocityX, accelerationSmoothRate);
-
-        rigidBody.linearVelocity = new Vector2(newVelocityX, rigidBody.linearVelocityY);
-        if (targetVelocityX != 0)
-            SetDirection(targetVelocityX > 0);
+        Move();
+        rigidBody.constraints = isWallHanging ? RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation : RigidbodyConstraints2D.FreezeRotation;
     }
 
     public class PlayState : BaseState<PlayerController>
@@ -110,6 +134,7 @@ public class PlayerController : CharacterControllerBase
 
         public override void EnterState()
         {
+            component.PlayStateEnter();
         }
 
         public override void FixedUpdateState()
