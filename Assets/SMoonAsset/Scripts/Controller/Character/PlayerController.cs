@@ -54,9 +54,9 @@ public class PlayerController : CharacterControllerBase
     private void ApplyBetterJump()
     {
         if (rigidBody.linearVelocity.y < 0)
-            rigidBody.linearVelocity += (fallMultiplier - 1) * Physics2D.gravity.y * Time.deltaTime * Vector2.up;
+            rigidBody.linearVelocityY += (fallMultiplier - 1) * Physics2D.gravity.y * Time.deltaTime;
         else if (rigidBody.linearVelocity.y > 0 && !input.Jump)
-            rigidBody.linearVelocity += (lowJumpMultiplier - 1) * Physics2D.gravity.y * Time.deltaTime * Vector2.up;
+            rigidBody.linearVelocityY += (lowJumpMultiplier - 1) * Physics2D.gravity.y * Time.deltaTime;
     }
 
     private void OnDrawGizmosSelected()
@@ -87,6 +87,9 @@ public class PlayerController : CharacterControllerBase
         }
 
         ApplyBetterJump();
+
+        UpdateMoveAnimation();
+        UpdateJumpAnimation(isGrounded);
     }
 
     private void PlayStateFixedUpdate()
@@ -95,6 +98,8 @@ public class PlayerController : CharacterControllerBase
         float newVelocityX = Mathf.SmoothDamp(rigidBody.linearVelocityX, targetVelocityX, ref currentVelocityX, accelerationSmoothRate);
 
         rigidBody.linearVelocity = new Vector2(newVelocityX, rigidBody.linearVelocityY);
+        if (targetVelocityX != 0)
+            SetDirection(targetVelocityX > 0);
     }
 
     public class PlayState : BaseState<PlayerController>
