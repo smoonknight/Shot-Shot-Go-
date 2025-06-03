@@ -1,9 +1,11 @@
+using SMoonUniversalAsset;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Input))]
-public class PlayerController : CharacterControllerBase
+public class PlayerController : PlayableCharacterControllerBase
 {
+
     private bool isGrounded;
     private float coyoteCounter;
     private float jumpBufferCounter;
@@ -27,6 +29,7 @@ public class PlayerController : CharacterControllerBase
     private void OnEnable()
     {
         input.JumpAction.performed += JumpActionPerformed;
+        input.FireAction.performed += FirePerformed;
     }
 
     private void OnDisable()
@@ -50,7 +53,14 @@ public class PlayerController : CharacterControllerBase
         {
             WallJump();
         }
+        ValidateDoubleJump();
         jumpBufferCounter = jumpBufferTime;
+    }
+
+
+    private void FirePerformed(InputAction.CallbackContext context)
+    {
+        Fire();
     }
 
 
@@ -58,6 +68,16 @@ public class PlayerController : CharacterControllerBase
     {
         Vector2 direction = new(isFacingRight ? -1f : 1f, 1f);
         SetForce(direction * wallJumpForce, 2f, true);
+    }
+
+    private void ValidateDoubleJump()
+    {
+        if (!enableDoubleJump || isGrounded || isWallHanging)
+        {
+            return;
+        }
+        ParticleSpawnerManager.Instance.AddParticle(ParticleType.ImpactGroundHit, groundCheck.position);
+        enableDoubleJump = false;
     }
 
     private void Jump()
@@ -86,6 +106,7 @@ public class PlayerController : CharacterControllerBase
     }
 
     protected override float GetMoveTargetVelocityX() => input.Move.x * moveSpeed;
+    public override bool IsPlayer() => true;
 
     #region Play State
     private void PlayStateEnter()
@@ -99,9 +120,17 @@ public class PlayerController : CharacterControllerBase
         isGrounded = Physics2D.Raycast(groundCheck.position, Vector2.down, groundRadius, LayerMaskManager.Instance.groundLayer);
 
         if (isGrounded)
+        {
+            enableDoubleJump = true;
             coyoteCounter = coyoteTime;
+        }
         else
             coyoteCounter -= Time.deltaTime;
+
+        if (enableDoubleJump)
+        {
+            coyoteCounter = coyoteTime;
+        }
 
         jumpBufferCounter -= Time.deltaTime;
 

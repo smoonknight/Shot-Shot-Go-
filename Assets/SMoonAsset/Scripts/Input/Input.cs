@@ -15,6 +15,7 @@ public class Input : MonoBehaviour
 
     private InputActionMap _currentMap;
     public InputAction MoveAction { private set; get; }
+    public InputAction FireAction { private set; get; }
     public InputAction RunAction { private set; get; }
     public InputAction JumpAction { private set; get; }
     public InputAction CrouchAction { private set; get; }
@@ -38,6 +39,7 @@ public class Input : MonoBehaviour
         HideCursor();
         _currentMap = playerInput.currentActionMap;
         MoveAction = _currentMap.FindAction("Move");
+        FireAction = _currentMap.FindAction("Fire");
         RunAction = _currentMap.FindAction("Run");
         JumpAction = _currentMap.FindAction("Jump");
         CrouchAction = _currentMap.FindAction("Crouch");

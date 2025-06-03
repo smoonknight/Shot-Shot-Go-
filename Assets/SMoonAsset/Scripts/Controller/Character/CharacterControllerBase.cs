@@ -54,10 +54,16 @@ public abstract class CharacterControllerBase : MonoBehaviour
 
     float lastMoveSmooth;
     float lastJumpSmooth;
-    float lastWallClimbSmooth;
 
-    protected bool isFacingRight = true;
+    [SerializeField]
+    [ReadOnly]
+    public bool isFacingRight = true;
+    [SerializeField]
+    [ReadOnly]
     protected bool enableMove = true;
+    [SerializeField]
+    [ReadOnly]
+    protected bool enableDoubleJump;
 
     protected const float inertiaRate = 5f;
     const float accelerationSmoothRate = 0.1f;
@@ -146,6 +152,8 @@ public abstract class CharacterControllerBase : MonoBehaviour
     {
         if (changeDirection)
             SetDirection(force.x > 0);
+
+        await UniTask.Yield();
 
         enableMove = false;
         rigidBody.linearVelocity = Vector2.zero;
