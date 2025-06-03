@@ -53,13 +53,14 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
     {
         base.Initialize(playableCharacterControllerBase, isPlayerAsMaster);
         RandomizeStandPosition();
+        onAttackingTask = GetAttackTask(itemBase.type);
     }
 
     private void RandomizeStandPosition()
     {
-        bool isRightPosition = Random.Range(0, 1) == 1;
-        standPosition = new Vector2(isRightPosition ? Random.Range(0.5f, 1) : Random.Range(-1, 0.5f), Random.Range(0.5f, 1.5f));
-        onAttackingTask = GetAttackTask(itemBase.type);
+        float x = Random.Range(0.8f, 1f) * (Random.value > 0.5f ? 1 : -1);
+        float y = Random.Range(0.5f, 1.5f);
+        standPosition = new Vector2(x, y);
     }
 
     private UnityAction GetAttackTask(MagicSwordItemType type) => type switch

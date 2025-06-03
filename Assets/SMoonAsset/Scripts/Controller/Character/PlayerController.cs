@@ -35,6 +35,7 @@ public class PlayerController : PlayableCharacterControllerBase
     private void OnDisable()
     {
         input.JumpAction.performed -= JumpActionPerformed;
+        input.FireAction.performed -= FirePerformed;
     }
 
     private void Update()
