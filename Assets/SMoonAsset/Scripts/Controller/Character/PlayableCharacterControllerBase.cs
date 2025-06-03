@@ -35,7 +35,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     public void AddMagicSword(MagicSwordItemController magicSword)
     {
-        magicSword.Initialize(this, IsPlayer());
+        magicSword.Initialize(this, IsPlayer(), transform.position);
         magicSwordItemControllers.Add(magicSword);
     }
 

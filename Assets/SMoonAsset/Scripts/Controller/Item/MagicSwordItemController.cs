@@ -19,6 +19,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
     const float maximumAttackDuration = 10;
 
     Vector3 standPosition;
+    Quaternion standRotation = Quaternion.identity;
 
     UnityAction onAttackingTask;
 
@@ -47,12 +48,14 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         float inertiaValue = inertiaRate * Time.deltaTime;
         Vector3 targetPosition = GetStandPosition();
         transform.SetPositionAndRotation(Vector3.Lerp(transform.position, targetPosition, inertiaValue),
-            Quaternion.Lerp(transform.rotation, Quaternion.identity, inertiaValue));
+            Quaternion.Lerp(transform.rotation, standRotation, inertiaValue));
+
+        //TODO Buat game ini jadi rogue like, hilangkan magic sword dropped item
     }
 
-    public override void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster)
+    public override void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition)
     {
-        base.Initialize(playableCharacterControllerBase, isPlayerAsMaster);
+        base.Initialize(playableCharacterControllerBase, isPlayerAsMaster, initialPosition);
         RandomizeStandPosition();
         onAttackingTask = GetAttackTask(itemBase.type);
     }
@@ -86,7 +89,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
     private void AttackDetectionTarget(Func<Collider2D, CancellationToken, UniTask> onAttackingTarget, UnityAction onClearAttacking = null)
     {
-        Collider2D collider = Physics2D.OverlapCircle(transform.position, detectionRange, isPlayerAsMaster ? LayerMaskManager.Instance.enemyMask : LayerMaskManager.Instance.playerMask);
+        Collider2D collider = Physics2D.OverlapCircle(transform.position, detectionRange, targetMask);
 
         if (collider == null)
         {

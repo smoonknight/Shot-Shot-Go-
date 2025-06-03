@@ -11,13 +11,17 @@ public abstract class WeaponItemController<T> : ItemController<T> where T : Item
 
     protected CancellationTokenSource attackingCancellationTokenSource;
 
-    public virtual void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster)
+    protected LayerMask targetMask;
+
+    public virtual void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition)
     {
         playableCharacter = playableCharacterControllerBase;
         master = playableCharacterControllerBase.transform;
+        transform.position = initialPosition;
         this.isPlayerAsMaster = isPlayerAsMaster;
-        transform.position = master.position;
+        targetMask = isPlayerAsMaster ? LayerMaskManager.Instance.enemyMask : LayerMaskManager.Instance.playerMask;
     }
+
 
     private void OnEnable()
     {
