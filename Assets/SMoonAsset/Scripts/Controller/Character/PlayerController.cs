@@ -1,3 +1,4 @@
+using System;
 using SMoonUniversalAsset;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,6 +15,7 @@ public class PlayerController : PlayableCharacterControllerBase
 
     private PlayerStateMachine playerStateMachine;
 
+    private TimeChecker attackIntervalTimeChecker = new(attackInterval);
 
     bool isWallHanging;
 
@@ -29,13 +31,11 @@ public class PlayerController : PlayableCharacterControllerBase
     private void OnEnable()
     {
         input.JumpAction.performed += JumpActionPerformed;
-        input.FireAction.performed += FirePerformed;
     }
 
     private void OnDisable()
     {
         input.JumpAction.performed -= JumpActionPerformed;
-        input.FireAction.performed -= FirePerformed;
     }
 
     private void Update()
@@ -58,17 +58,10 @@ public class PlayerController : PlayableCharacterControllerBase
         jumpBufferCounter = jumpBufferTime;
     }
 
-
-    private void FirePerformed(InputAction.CallbackContext context)
-    {
-        Fire();
-    }
-
-
     private void WallJump()
     {
         Vector2 direction = new(isFacingRight ? -1f : 1f, 1f);
-        SetForce(direction * wallJumpForce, 2f, true);
+        SetForce(direction * wallJumpForce, 2f, true, () => isGrounded);
     }
 
     private void ValidateDoubleJump()
@@ -77,7 +70,7 @@ public class PlayerController : PlayableCharacterControllerBase
         {
             return;
         }
-        ParticleSpawnerManager.Instance.AddParticle(ParticleType.ImpactGroundHit, groundCheck.position);
+        ParticleSpawnerManager.Instance.GetSpawned(ParticleType.ImpactGroundHit, groundCheck.position);
         enableDoubleJump = false;
     }
 
@@ -148,6 +141,11 @@ public class PlayerController : PlayableCharacterControllerBase
         UpdateMoveAnimation();
         UpdateJumpAnimation(isGrounded);
         UpdateWallHangAnimation(isWallHanging);
+
+        if (input.Fire && attackIntervalTimeChecker.IsUpdatingTime())
+        {
+            Fire();
+        }
     }
 
     private void PlayStateFixedUpdate()

@@ -76,7 +76,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 110
-  m_Sprite: {fileID: -267587109, guid: 6eb16e372762d6b4cb708c44ebfab931, type: 3}
+  m_Sprite: {fileID: 1145680292, guid: 6eb16e372762d6b4cb708c44ebfab931, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -100,7 +100,7 @@ GameObject:
   - component: {fileID: 2134280095073608906}
   - component: {fileID: 6278719484363036195}
   m_Layer: 0
-  m_Name: Common Magic Sword
+  m_Name: Slashing Magic Sword
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -209,6 +209,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemBase:
     quantity: 10
-    type: 0
+    type: 2
     damage: 5
   spriteRenderer: {fileID: 2770990330248749319}

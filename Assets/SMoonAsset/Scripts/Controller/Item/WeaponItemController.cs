@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using UnityEngine;
 
 public abstract class WeaponItemController<T> : ItemController<T> where T : ItemBase
@@ -8,11 +9,14 @@ public abstract class WeaponItemController<T> : ItemController<T> where T : Item
     protected Transform master;
     protected bool isPlayerAsMaster;
 
+    protected CancellationTokenSource attackingCancellationTokenSource;
+
     public virtual void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster)
     {
-        this.playableCharacter = playableCharacterControllerBase;
+        playableCharacter = playableCharacterControllerBase;
         master = playableCharacterControllerBase.transform;
         this.isPlayerAsMaster = isPlayerAsMaster;
+        transform.position = master.position;
     }
 
     private void OnEnable()

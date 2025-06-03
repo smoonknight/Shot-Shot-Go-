@@ -9,6 +9,7 @@ public class Input : MonoBehaviour
 
     public Vector2 Move { get; private set; }
     public Vector2 Look { get; private set; }
+    public bool Fire { get; private set; }
     public bool Run { get; private set; }
     public bool Jump { get; private set; }
     public bool Crouch { get; private set; }
@@ -46,11 +47,13 @@ public class Input : MonoBehaviour
         InteractAction = _currentMap.FindAction("Interact");
 
         MoveAction.performed += OnMove;
+        FireAction.performed += OnFire;
         RunAction.performed += OnRun;
         JumpAction.performed += OnJump;
         CrouchAction.started += OnCrouch;
 
         MoveAction.canceled += OnMove;
+        FireAction.canceled += OnFire;
         RunAction.canceled += OnRun;
         JumpAction.canceled += OnJump;
         CrouchAction.canceled += OnCrouch;
@@ -65,6 +68,11 @@ public class Input : MonoBehaviour
     private void OnMove(InputAction.CallbackContext context)
     {
         Move = context.ReadValue<Vector2>();
+    }
+
+    private void OnFire(InputAction.CallbackContext context)
+    {
+        Fire = context.ReadValueAsButton();
     }
     private void OnRun(InputAction.CallbackContext context)
     {

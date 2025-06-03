@@ -8,8 +8,8 @@ public abstract class ItemController<T> : MonoBehaviour where T : ItemBase
 
     public void SetItemBase(T itemBase)
     {
-        this.itemBase = itemBase;
-        spriteRenderer.sprite = itemBase.sprite;
+        this.itemBase.quantity = itemBase.quantity;
+        spriteRenderer.sprite = itemBase.GetSprite();
     }
 
     public void Disable()

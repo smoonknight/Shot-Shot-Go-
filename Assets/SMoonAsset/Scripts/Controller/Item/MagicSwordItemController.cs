@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
@@ -63,11 +64,18 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         standPosition = new Vector2(x, y);
     }
 
+    private void ResetPositionRandomizeAndScale()
+    {
+        RandomizeStandPosition();
+        transform.position = GetStandPosition();
+        transform.localScale = Vector3.one;
+    }
+
     private UnityAction GetAttackTask(MagicSwordItemType type) => type switch
     {
         MagicSwordItemType.Common => OnMasterDirection,
         MagicSwordItemType.OnTarget => () => AttackDetectionTarget(OnTargetAttack),
-        MagicSwordItemType.Slashing => () => AttackDetectionTarget(SlasherAttack),
+        MagicSwordItemType.Slashing => () => AttackDetectionTarget(SlasherAttack, ResetPositionRandomizeAndScale),
         _ => throw new NotImplementedException(),
     };
 
@@ -76,24 +84,29 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         onAttackingTask.Invoke();
     }
 
-    private void AttackDetectionTarget(Func<Collider2D, UniTask> onAttackingTarget)
+    private void AttackDetectionTarget(Func<Collider2D, CancellationToken, UniTask> onAttackingTarget, UnityAction onClearAttacking = null)
     {
         Collider2D collider = Physics2D.OverlapCircle(transform.position, detectionRange, isPlayerAsMaster ? LayerMaskManager.Instance.enemyMask : LayerMaskManager.Instance.playerMask);
 
         if (collider == null)
         {
-            Debug.LogWarning($"Tidak terdeteksi");
+            OnMasterDirection();
             return;
         }
 
-        AttackingTarget(collider, onAttackingTarget);
+        AttackingTarget(collider, onAttackingTarget, onClearAttacking);
     }
 
-    private async void AttackingTarget(Collider2D target, Func<Collider2D, UniTask> onAttackingTarget)
+    private async void AttackingTarget(Collider2D target, Func<Collider2D, CancellationToken, UniTask> onAttackingTarget, UnityAction onClearAttacking = null)
     {
+        attackingCancellationTokenSource?.Cancel();
         isAttacking = true;
 
-        await onAttackingTarget.Invoke(target);
+        attackingCancellationTokenSource = new();
+
+        await onAttackingTarget.Invoke(target, attackingCancellationTokenSource.Token);
+
+        onClearAttacking?.Invoke();
 
         isAttacking = false;
     }
@@ -104,21 +117,20 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         Vector3 direction = playableCharacter.isFacingRight ? Vector3.right : Vector3.left;
         Vector3 targetPosition = transform.position + direction * travelRange;
 
-        await TravelToTarget(targetPosition, () =>
-        {
-            RandomizeStandPosition();
-            transform.position = GetStandPosition();
-        });
+        attackingCancellationTokenSource?.Cancel();
+        attackingCancellationTokenSource = new();
+
+        await TravelToTarget(targetPosition, attackingCancellationTokenSource.Token, ResetPositionRandomizeAndScale);
 
         isAttacking = false;
     }
 
-    private async UniTask OnTargetAttack(Collider2D target)
+    private async UniTask OnTargetAttack(Collider2D target, CancellationToken cancellationToken)
     {
-        await TravelToTarget(target.transform.position);
+        await TravelToTarget(target.transform.position, cancellationToken);
     }
 
-    private async UniTask TravelToTarget(Vector3 targetPosition, UnityAction onTravelFinish = null)
+    private async UniTask TravelToTarget(Vector3 targetPosition, CancellationToken cancellationToken, UnityAction onTravelFinish = null)
     {
         float totalTravel = 0f;
         float time = 0;
@@ -129,6 +141,10 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
         while (time < maximumAttackDuration)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
             Vector2 oldPosition = transform.position;
             Vector2 moveVector = swordTravelSpeed * Time.deltaTime * (Vector2)transform.up;
             Vector2 newPosition = oldPosition + moveVector;
@@ -147,36 +163,86 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         onTravelFinish?.Invoke();
     }
 
-    private async UniTask SlasherAttack(Collider2D target)
+    private async UniTask SlasherAttack(Collider2D target, CancellationToken cancellationToken)
     {
         float totalTravel = 0f;
-
         Vector3 targetPosition = target.transform.position;
-        Quaternion targetRotation;
+        float time = 0f;
+        bool slashingAttack = false;
 
-        float time = 0;
+        bool isMasterFacingRight = playableCharacter.isFacingRight;
+
+        transform.rotation = Quaternion.identity;
 
         while (time < maximumAttackDuration)
         {
-            Vector2 direction = (targetPosition - transform.position).normalized;
-            targetRotation = Quaternion.LookRotation(Vector3.forward, direction);
-            Quaternion newRotation = targetRotation;
+            if (cancellationToken.IsCancellationRequested)
+                return;
 
-            Vector2 oldPosition = transform.position;
-            Vector2 newPosition = Vector2.MoveTowards(transform.position, targetPosition, swordTravelSpeed * Time.deltaTime);
+            Vector3 currentPosition = transform.position;
+            Vector2 newPosition = Vector2.MoveTowards(currentPosition, targetPosition, swordTravelSpeed * Time.deltaTime);
 
-            totalTravel += Vector2.Distance(oldPosition, newPosition);
-
-            if (totalTravel >= detectionRange)
+            totalTravel += Vector2.Distance(currentPosition, newPosition);
+            if (totalTravel >= detectionRange || Vector2.Distance(newPosition, targetPosition) < 0.5f)
+            {
+                slashingAttack = true;
                 break;
+            }
 
-            transform.SetPositionAndRotation(
-                newPosition,
-                newRotation
-            );
+            transform.position = newPosition;
+
+            time += Time.deltaTime;
+            await UniTask.Yield();
+        }
+
+        if (!slashingAttack)
+            return;
+
+        transform.rotation = Quaternion.identity;
+        time = 0f;
+
+        float scaleDuration = 1f;
+        while (time < scaleDuration)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            float percentage = time / scaleDuration;
+            Vector3 scaleLerp = Vector3.Lerp(Vector3.one, Vector3.one * 4, percentage);
+            transform.localScale = scaleLerp;
+            time += Time.deltaTime;
+            await UniTask.Yield();
+        }
+
+        float slashingDuration = 0.5f;
+        time = 0f;
+        float targetAngle = isMasterFacingRight ? -360 : 360;
+        while (time < slashingDuration)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            float angle = Mathf.Lerp(0f, targetAngle, time / slashingDuration);
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+            time += Time.deltaTime;
+            await UniTask.Yield();
+        }
+
+        await DelayWithCancel(0.5f, cancellationToken);
+    }
+
+    private async UniTask DelayWithCancel(float duration, CancellationToken token)
+    {
+        float time = 0f;
+        while (time < duration)
+        {
+            if (token.IsCancellationRequested)
+                return;
 
             time += Time.deltaTime;
             await UniTask.Yield();
         }
     }
+
+
 }

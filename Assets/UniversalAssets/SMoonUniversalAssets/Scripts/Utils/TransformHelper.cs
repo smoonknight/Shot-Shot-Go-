@@ -76,5 +76,6 @@ public static class TransformHelper
         return componentsList;
     }
 
+    public static bool CompareWithLayerIndex(this LayerMask layerMask, int index) => layerMask == (layerMask | (1 << index));
     public static bool CompareLayermaskWithLayerIndex(LayerMask layerMask, int index) => layerMask == (layerMask | (1 << index));
 }

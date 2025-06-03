@@ -3,6 +3,6 @@ using UnityEngine;
 [System.Serializable]
 public abstract class ItemBase
 {
-    public Sprite sprite;
+    public abstract Sprite GetSprite();
     public int quantity;
 }

@@ -17,7 +17,7 @@ namespace SMoonUniversalAsset
 
         private int GetInitialPoolSize() => initialPoolSize * spawnProperties.Count;
 
-        public void Initialize()
+        public virtual void Initialize()
         {
             int poolSize = GetInitialPoolSize();
             spawnedPropertyPool = new List<SpawnProperty>(poolSize);
@@ -43,19 +43,25 @@ namespace SMoonUniversalAsset
         {
             foreach (var spawnedProperty in spawnedPropertyPool)
             {
-                if (!spawnedProperty.component.gameObject.activeInHierarchy)
+                if (spawnedProperty.component.gameObject.activeInHierarchy)
                 {
-                    T component = spawnedProperty.component;
-                    if (position.HasValue)
-                        component.transform.position = position.Value;
-
-                    if (rotation.HasValue)
-                        component.transform.rotation = rotation.Value;
-
-                    component.gameObject.SetActive(true);
-                    OnSpawn(component, onSetDeactiveOnDurationUpdate);
-                    return component;
+                    continue;
                 }
+                if (!spawnedProperty.type.Equals(type))
+                {
+                    continue;
+                }
+
+                T component = spawnedProperty.component;
+                if (position.HasValue)
+                    component.transform.position = position.Value;
+
+                if (rotation.HasValue)
+                    component.transform.rotation = rotation.Value;
+
+                component.gameObject.SetActive(true);
+                OnSpawn(component, type, onSetDeactiveOnDurationUpdate);
+                return component;
             }
             SpawnProperty selectedSpawnProperty = spawnProperties.FirstOrDefault(spawnProperty => spawnProperty.type.Equals(type));
             if (selectedSpawnProperty.component == null)
@@ -64,7 +70,7 @@ namespace SMoonUniversalAsset
             }
 
             AddSpawnPropertyToSpawnedPropertyPool(selectedSpawnProperty, true, out T newComponent);
-            OnSpawn(newComponent, onSetDeactiveOnDurationUpdate);
+            OnSpawn(newComponent, type, onSetDeactiveOnDurationUpdate);
 
             return selectedSpawnProperty.component;
         }
@@ -90,7 +96,7 @@ namespace SMoonUniversalAsset
             component.gameObject.SetActive(false);
         }
 
-        public abstract void OnSpawn(T component, Func<Vector3> onSetDeactiveOnDurationUpdate = null);
+        public abstract void OnSpawn(T component, G type, Func<Vector3> onSetDeactiveOnDurationUpdate = null);
 
 
         [System.Serializable]

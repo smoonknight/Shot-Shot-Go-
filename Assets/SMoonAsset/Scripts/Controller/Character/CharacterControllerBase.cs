@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -140,18 +141,17 @@ public abstract class CharacterControllerBase : MonoBehaviour
         return Physics2D.Raycast(transform.position, direction, wallCheckDistance, LayerMaskManager.Instance.wallLayer);
     }
 
-    protected void SetForce(Vector2 force, float duration, bool changeDirection)
+    protected void SetForce(Vector2 force, float duration, bool changeDirection, Func<bool> cancelFunc = null)
     {
         forceCancellationTokenSource?.Cancel();
         forceCancellationTokenSource = new();
 
-        StartSetForce(force, duration, changeDirection, forceCancellationTokenSource.Token).Forget();
+        StartSetForce(force, duration, changeDirection, forceCancellationTokenSource.Token, cancelFunc).Forget();
     }
 
-    private async UniTaskVoid StartSetForce(Vector2 force, float duration, bool changeDirection, CancellationToken cancellationToken)
+    private async UniTaskVoid StartSetForce(Vector2 force, float duration, bool changeDirection, CancellationToken cancellationToken, Func<bool> cancelFunc = null)
     {
-        if (changeDirection)
-            SetDirection(force.x > 0);
+        if (changeDirection) SetDirection(force.x > 0);
 
         await UniTask.Yield();
 
@@ -159,15 +159,17 @@ public abstract class CharacterControllerBase : MonoBehaviour
         rigidBody.linearVelocity = Vector2.zero;
         rigidBody.AddForce(force, ForceMode2D.Impulse);
 
-        float time = 0;
-        while (time < duration && !cancellationToken.IsCancellationRequested)
+        float timer = 0f;
+        while (timer < duration)
         {
-            time += Time.deltaTime;
+            if (cancellationToken.IsCancellationRequested || (cancelFunc?.Invoke() ?? false)) break;
+            timer += Time.deltaTime;
             await UniTask.Yield();
         }
 
         enableMove = true;
     }
+
 
     protected void UpdateMoveAnimation()
     {

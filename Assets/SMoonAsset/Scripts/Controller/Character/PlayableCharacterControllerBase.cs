@@ -9,7 +9,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     [ReadOnly]
     protected List<MagicSwordItemController> magicSwordItemControllers = new();
 
-
+    protected const float attackInterval = 0.2f;
 
     protected int health;
 
@@ -17,8 +17,6 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     {
         base.Awake();
         SetupInitialMagicSwordProperties();
-        magicSwordItemControllers.ForEach(magicSwordItemController => magicSwordItemController.Initialize(this, IsPlayer()));
-
     }
 
     void SetupInitialMagicSwordProperties()
@@ -30,14 +28,25 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     {
         for (int i = 0; i < initialMagicSwordProperty.amount; i++)
         {
-            var magicSword = MagicSwordSpawnerManager.Instance.spawner.GetSpawned(initialMagicSwordProperty.type);
-            magicSwordItemControllers.Add(magicSword);
+            var magicSword = MagicSwordSpawnerManager.Instance.GetSpawned(initialMagicSwordProperty.type);
+            AddMagicSword(magicSword);
         }
+    }
+
+    public void AddMagicSword(MagicSwordItemController magicSword)
+    {
+        magicSword.Initialize(this, IsPlayer());
+        magicSwordItemControllers.Add(magicSword);
     }
 
     public void Fire()
     {
-        var selectedMagicSword = magicSwordItemControllers.FirstOrDefault(magicSwordItemController => magicSwordItemController.EnabledAttack());
+        var enableAttackMagicSwords = magicSwordItemControllers.FindAll(magicSwordItemController => magicSwordItemController.EnabledAttack());
+        if (enableAttackMagicSwords.Count == 0)
+        {
+            return;
+        }
+        var selectedMagicSword = enableAttackMagicSwords.GetRandom();
         if (selectedMagicSword != null)
         {
             selectedMagicSword.AttackAction();

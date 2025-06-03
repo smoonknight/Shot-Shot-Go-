@@ -4,7 +4,7 @@ using System.Linq;
 using SMoonUniversalAsset;
 using UnityEngine;
 
-public class MagicSwordSpawnerManager : SpawnerManager<MagicSwordSpawner>
+public class MagicSwordSpawnerManager : SpawnerManager<MagicSwordSpawner, MagicSwordItemController, MagicSwordItemType>
 {
 
 }
@@ -12,13 +12,12 @@ public class MagicSwordSpawnerManager : SpawnerManager<MagicSwordSpawner>
 [Serializable]
 public class MagicSwordSpawner : SpawnerBase<MagicSwordItemController, MagicSwordItemType>
 {
-    public List<MagicSwordItem> defaultMagicSwordItems;
-    public override void OnSpawn(MagicSwordItemController component, Func<Vector3> onActivePositionUpdate = null)
+    public override void OnSpawn(MagicSwordItemController component, MagicSwordItemType type, Func<Vector3> onActivePositionUpdate = null)
     {
-        var selectedMagicSwordItem = defaultMagicSwordItems.FirstOrDefault(magicSwordItem => magicSwordItem.type == component.itemBase.type);
+        var selectedMagicSwordItem = GameManager.Instance.GetDefaultItem(type);
         if (selectedMagicSwordItem != null)
         {
-            component.SetItemBase(selectedMagicSwordItem);
+            component.SetItemBase(selectedMagicSwordItem.itemBase);
         }
     }
 }
