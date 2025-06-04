@@ -10006,6 +10006,7 @@ MonoBehaviour:
   environmentProperties:
   - allowedTilemapTypes: 0000000001000000
     allowedTilemapControllers: []
+  spawnExperience: 5
 --- !u!4 &1905318948
 Transform:
   m_ObjectHideFlags: 0

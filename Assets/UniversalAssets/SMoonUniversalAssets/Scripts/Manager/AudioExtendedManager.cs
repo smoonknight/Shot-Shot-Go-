@@ -66,9 +66,9 @@ public class AudioExtendedManager : SingletonWithDontDestroyOnLoad<AudioExtended
 
     int leanTweenLowpassId = 0;
 
-    protected override void Awake()
+    protected override void OnAwake()
     {
-        base.Awake();
+        base.OnAwake();
 
         inputActions = new();
         foreach (Sound sound in sounds)

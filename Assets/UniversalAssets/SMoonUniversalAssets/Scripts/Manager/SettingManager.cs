@@ -12,9 +12,9 @@ namespace SMoonUniversalAsset
 
         PlayerSetting playerSetting;
 
-        protected override void Awake()
+        protected override void OnAwake()
         {
-            base.Awake();
+            base.OnAwake();
 
             playerSetting = SaveSystem.LoadPlayerSetting();
         }

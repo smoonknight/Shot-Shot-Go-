@@ -65,7 +65,6 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     {
         jumpForce = upgradeProperty.jump;
         moveSpeed = upgradeProperty.moveSpeed;
-
     }
 
     void SetupInitialMagicSwordProperties()

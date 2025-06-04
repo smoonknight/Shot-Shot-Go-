@@ -36,9 +36,9 @@ public class RogueManager : Singleton<RogueManager>
 
     int currentLevel = 1;
 
-    protected override void Awake()
+    protected override void OnAwake()
     {
-        base.Awake();
+        base.OnAwake();
 
         latestLevelEnemyProperty = GetLevelEnemyProperty(rogueExperienceStat.Level);
         nextSpawnChecker = new(latestLevelEnemyProperty.nextEnemySpawnDuration, false);

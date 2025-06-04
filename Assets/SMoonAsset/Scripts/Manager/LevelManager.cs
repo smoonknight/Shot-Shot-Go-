@@ -6,9 +6,9 @@ public class LevelManager : Singleton<LevelManager>
 {
     public List<PointDataProperty<MagicSwordItemType>> magicSwordPointDataProperties;
 
-    protected override void Awake()
+    protected override void OnAwake()
     {
-        base.Awake();
+        base.OnAwake();
 
         magicSwordPointDataProperties.ForEach(SetupPointDataProperty);
     }

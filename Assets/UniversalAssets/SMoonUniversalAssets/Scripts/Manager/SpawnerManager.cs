@@ -9,25 +9,25 @@ public class SpawnerManager<T, G, C> : Singleton<SpawnerManager<T, G, C>> where 
 
     public G GetSpawned(C type, Vector3? position = null, Quaternion? rotation = null, Func<Vector3> onSetDeactiveOnDurationUpdate = null) => spawner.GetSpawned(type, position, rotation, onSetDeactiveOnDurationUpdate);
 
-    protected override void Awake()
+    protected override void OnAwake()
     {
-        base.Awake();
+        base.OnAwake();
         spawner.Initialize();
     }
 
     public int GetActiveSpawn() => spawner.GetActiveSpawn();
 }
 
-public class SpawnerManagerWithDDOL<T, G, C> : SingletonWithDontDestroyOnLoad<SpawnerManager<T, G, C>> where T : SpawnerBase<G, C> where G : Component where C : Enum
+public class SpawnerManagerWithDDOL<T, G, C> : SingletonWithDontDestroyOnLoad<SpawnerManagerWithDDOL<T, G, C>> where T : SpawnerBase<G, C> where G : Component where C : Enum
 {
     [SerializeField]
     protected T spawner;
 
     public G GetSpawned(C type, Vector3? position = null, Quaternion? rotation = null, Func<Vector3> onSetDeactiveOnDurationUpdate = null) => spawner.GetSpawned(type, position, rotation, onSetDeactiveOnDurationUpdate);
 
-    protected override void OnNullSetup()
+    protected override void OnAwake()
     {
-        base.OnNullSetup();
+        base.OnAwake();
         spawner.Initialize();
     }
 
