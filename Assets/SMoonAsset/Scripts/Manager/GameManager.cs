@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class GameManager : SingletonWithDontDestroyOnLoad<GameManager>
 {
+    public GameModeType currentGameModeType;
     public DefaultDataScriptableObject defaultItem;
 
     public DefaultItem<MagicSwordItem> GetDefaultItem(MagicSwordItemType type) => defaultItem.magicSwordDefaultItems.Find(match => match.itemBase.type == type);
@@ -13,10 +14,25 @@ public class GameManager : SingletonWithDontDestroyOnLoad<GameManager>
     public UpgradeProperty GetCopyOfDefaultCharacterUpgradeProperty() => defaultItem.defaultCharacterUpgradeProperty.Copy();
     public List<TypeUpgradeProperty<MagicSwordItemType>> GetCopyOfDefaultMagicSwordTypeUpgradeProperties() => defaultItem.defaultMagicSwordItemTypeUpgradePropertyCollector.GetCopyOfTypeUpgradeProperties().ToList();
 
-    internal TypeUpgradeProperty<EnemyType> GetCopyOfDefaultEnemyCharacterUpgradeProperty(EnemyType type) => defaultItem.enemyTypeUpgradePropertyCollector.GetUpgradeProperty(type).Copy();
+    public TypeUpgradeProperty<EnemyType> GetCopyOfDefaultEnemyCharacterUpgradeProperty(EnemyType type) => defaultItem.enemyTypeUpgradePropertyCollector.GetUpgradeProperty(type).Copy();
 
-    internal void RaiseGameOver()
+    public Vector3 GetOutOfBoundByGameMode()
+    {
+        return currentGameModeType switch
+        {
+            GameModeType.Normal => LevelManager.Instance.latestCheckpoint,
+            GameModeType.Rogue => RogueManager.Instance.GetSampleSpawnPosition(),
+            _ => throw new NotImplementedException(),
+        };
+    }
+
+    public void RaiseGameOver()
     {
         Debug.Log("Game Over");
     }
+}
+
+public enum GameModeType
+{
+    Normal, Rogue,
 }

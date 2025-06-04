@@ -89,6 +89,7 @@ public class PlayerController : PlayableCharacterControllerBase
     public override bool IsPlayer() => true;
     public override bool HoldingJump() => input.Jump;
     public override UpgradeProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultCharacterUpgradeProperty();
+    public override bool CheckOutOfBound() => true;
 
     #region Play State
     private void PlayStateEnter()

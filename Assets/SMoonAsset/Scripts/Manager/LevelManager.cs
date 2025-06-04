@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class LevelManager : Singleton<LevelManager>
 {
+    public Vector3 latestCheckpoint;
     public List<PointDataProperty<MagicSwordItemType>> magicSwordPointDataProperties;
 
     protected override void OnAwake()

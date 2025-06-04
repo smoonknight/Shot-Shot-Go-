@@ -5,7 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-public abstract class PlayableCharacterControllerBase : CharacterControllerBase, IDamageable
+public abstract class PlayableCharacterControllerBase : CharacterControllerBase, IDamageable, IOutOfBoundable
 {
     [SerializeField]
     private List<InitialMagicSwordProperty> initialMagicSwordProperties;
@@ -146,7 +146,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
             Trampoline(component.JumpValue());
             if (component.IsDamaging())
             {
-                component.TakeDamage(characterUpgradeProperty.damage);
+                component.TrampolineTakeDamage(characterUpgradeProperty.damage);
             }
         }
         return hit.collider != null;
@@ -182,10 +182,19 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         }
     }
 
+    public virtual void OutOfBoundChangeLocation()
+    {
+        TakeDamage(10);
+        Vector3 location = GameManager.Instance.GetOutOfBoundByGameMode();
+        transform.position = location;
+        rigidBody.linearVelocity = Vector3.zero;
+    }
+
     public abstract bool IsPlayer();
     public abstract bool HoldingJump();
     public abstract void OnZeroHealth();
     public abstract UpgradeProperty GetCharacterUpgradeProperty();
+    public abstract bool CheckOutOfBound();
 }
 
 [System.Serializable]

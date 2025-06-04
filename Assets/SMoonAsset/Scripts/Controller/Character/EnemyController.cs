@@ -19,8 +19,11 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     const float squashingDuration = 0.15f;
     const float waitingNormalAfterSquasedDuration = 0.75f;
     const float normalAfterSquasedDuration = 0.10f;
+    const float trampolineTakeDamageCooldownDuration = 0.1f;
 
     CancellationTokenSource squashCancellationTokenSource;
+
+    TimeChecker trampolineTakeDamageTimeChecker = new(trampolineTakeDamageCooldownDuration, false);
 
     public override void TakeDamage(int damage)
     {
@@ -28,13 +31,18 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         base.TakeDamage(damage);
     }
 
+    public void TrampolineTakeDamage(int damage)
+    {
+        if (trampolineTakeDamageTimeChecker.IsUpdatingTime())
+        {
+            TakeDamage(damage);
+        }
+    }
+
     protected override float GetMoveTargetVelocityX()
     {
         return 0;
     }
-
-    public override bool IsPlayer() => true;
-    public override bool HoldingJump() => holdingJump;
 
     public void OnTakeTrampoline()
     {
@@ -75,7 +83,6 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
             await UniTask.NextFrame();
         }
 
-        // Pastikan nilai akhir benar
         Vector3 finalScale = transform.localScale;
         finalScale.y = to;
         transform.localScale = finalScale;
@@ -87,6 +94,10 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         await LerpGeneric(1f, 0f, 0.5f, Mathf.Lerp, AlphaChange, cancellationToken);
         gameObject.SetActive(false);
     }
+
+    public override bool IsPlayer() => true;
+    public override bool HoldingJump() => holdingJump;
+    public override bool CheckOutOfBound() => true;
 }
 
 public enum EnemyType

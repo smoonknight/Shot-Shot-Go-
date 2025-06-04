@@ -25,6 +25,8 @@ public class RogueManager : Singleton<RogueManager>
 
     private TilemapController GetSampleTilemapController() => currentEnvironmentProperty.allowedTilemapControllers.FindAll(match => match.IsSpawnAreasExist).GetRandom();
 
+    public Vector3 GetSampleSpawnPosition() => GetSampleTilemapController().GetRandomPointInSpawnAreas();
+
     const float minimumEnvironmentChangeDuration = 15;
     const float maximumEnvironmentChangeDuration = 30;
 
