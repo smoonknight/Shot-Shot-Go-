@@ -8,6 +8,8 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 {
     public EnemyType type;
 
+    public EnemyStateMachine enemyStateMachine;
+
     private bool holdingJump;
 
     public override UpgradeProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultEnemyCharacterUpgradeProperty(type).upgradeProperty;
@@ -21,9 +23,29 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     const float normalAfterSquasedDuration = 0.10f;
     const float trampolineTakeDamageCooldownDuration = 0.1f;
 
+    private Vector3 targetMovePosition;
+    private FillChecker wantToJumpFillChecker = new(1);
+
     CancellationTokenSource squashCancellationTokenSource;
 
     TimeChecker trampolineTakeDamageTimeChecker = new(trampolineTakeDamageCooldownDuration, false);
+
+    protected override void Awake()
+    {
+        base.Awake();
+        enemyStateMachine = new();
+        enemyStateMachine.Initialize(this, EnemyStateType.Scouting);
+    }
+
+    private void Update()
+    {
+        enemyStateMachine.CurrentState.UpdateState();
+    }
+
+    private void FixedUpdate()
+    {
+        enemyStateMachine.CurrentState.FixedUpdateState();
+    }
 
     public override void TakeDamage(int damage)
     {
@@ -39,9 +61,25 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         }
     }
 
-    protected override float GetMoveTargetVelocityX()
+    protected override float GetMoveTargetDirectionX()
     {
-        return 0;
+        float deltaX = targetMovePosition.x - transform.position.x;
+
+        if (Mathf.Abs(deltaX) < 0.1f)
+            return 0;
+
+        int direction = deltaX > 0 ? 1 : -1;
+
+        Vector2 origin = new(groundCheck.position.x + direction, groundCheck.position.y);
+        RaycastHit2D groundHit = Physics2D.Raycast(origin, Vector2.down, groundRadius, LayerMaskManager.Instance.groundableLayer);
+
+        if (isGrounded && !groundHit)
+        {
+            SetForce(new Vector2(direction, 1) * jumpForce, 2f, true, () => isGrounded || (rigidBody.linearVelocityX == 0));
+            return 0;
+        }
+
+        return direction;
     }
 
     public void OnTakeTrampoline()
@@ -54,6 +92,8 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
     private async void DoSquashAnimation(float squashingDuration, float waitingNormalAfterSquasedDuration, float normalAfterSquasedDuration, CancellationToken cancellationToken)
     {
+        enableMove = false;
+        await UniTask.Yield();
         float originalScaleY = initialScale.y;
         float squashedScaleY = originalScaleY * 0.80f;
 
@@ -63,7 +103,10 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
         await LerpScaleY(transform.localScale.y, originalScaleY, normalAfterSquasedDuration, cancellationToken);
 
-        transform.localScale = initialScale;
+        Vector3 finalScale = transform.localScale;
+        finalScale.y = initialScale.y;
+        transform.localScale = finalScale;
+        enableMove = true;
     }
 
     private async UniTask LerpScaleY(float from, float to, float duration, CancellationToken cancellationToken)
@@ -82,10 +125,6 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
             time += Time.deltaTime;
             await UniTask.NextFrame();
         }
-
-        Vector3 finalScale = transform.localScale;
-        finalScale.y = to;
-        transform.localScale = finalScale;
     }
 
     public override async void OnZeroHealth()
@@ -98,6 +137,97 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     public override bool IsPlayer() => true;
     public override bool HoldingJump() => holdingJump;
     public override bool CheckOutOfBound() => true;
+
+    #region Target Lock State
+
+    public class TargetLockState : BaseState<EnemyController>
+    {
+        public TargetLockState(EnemyController component) : base(component)
+        {
+        }
+
+        public override void EnterState()
+        {
+        }
+
+        public override void FixedUpdateState()
+        {
+            component.ScoutingFixedUpdate();
+        }
+
+        public override void LeaveState()
+        {
+        }
+
+        public override void UpdateState()
+        {
+            component.ScoutingUpdate();
+        }
+    }
+
+    #endregion
+
+    #region Scouting State
+
+    private void ScoutingUpdate()
+    {
+        isGrounded = CheckGrounded();
+    }
+
+    private void ScoutingFixedUpdate()
+    {
+        ValidateMove();
+    }
+
+    public class ScoutingState : BaseState<EnemyController>
+    {
+        public ScoutingState(EnemyController component) : base(component)
+        {
+        }
+
+        public override void EnterState()
+        {
+        }
+
+        public override void FixedUpdateState()
+        {
+            component.ScoutingFixedUpdate();
+        }
+
+        public override void LeaveState()
+        {
+        }
+
+        public override void UpdateState()
+        {
+            component.ScoutingUpdate();
+        }
+    }
+
+    #endregion
+
+    public class EnemyStateMachine : EnumStateMachine<EnemyController, EnemyStateType>
+    {
+        private ScoutingState scoutingState;
+        private TargetLockState targetLockState;
+        protected override void InitializeState(EnemyController component)
+        {
+            scoutingState = new(component);
+            targetLockState = new(component);
+        }
+
+        protected override BaseState<EnemyController> GetState(EnemyStateType type) => type switch
+        {
+            EnemyStateType.Scouting => scoutingState,
+            EnemyStateType.TargetLock => targetLockState,
+            _ => throw new System.NotImplementedException(),
+        };
+    }
+}
+
+public enum EnemyStateType
+{
+    Scouting, TargetLock,
 }
 
 public enum EnemyType

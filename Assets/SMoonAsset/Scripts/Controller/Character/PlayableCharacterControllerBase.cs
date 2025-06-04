@@ -26,8 +26,6 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     protected bool isProcessTrampoline;
 
-    protected bool isDead;
-
     protected override void Awake()
     {
         base.Awake();
@@ -50,19 +48,14 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         isDead = false;
         ColorChange(Color.white);
         AlphaChange(1);
-        SetupUpgradeProperties();
-        UpdateCharacterUpgrade(characterUpgradeProperty);
-        SetupInitialMagicSwordProperties();
-    }
-
-    void SetupUpgradeProperties()
-    {
-        characterUpgradeProperty = GetCharacterUpgradeProperty();
         magicSwordTypeUpgradePropertyCollector.SetTypeUpgradeProperties(GameManager.Instance.GetCopyOfDefaultMagicSwordTypeUpgradeProperties());
+        UpdateCharacterUpgrade(GetCharacterUpgradeProperty());
+        SetupInitialMagicSwordProperties();
     }
 
     void UpdateCharacterUpgrade(UpgradeProperty upgradeProperty)
     {
+        characterUpgradeProperty = upgradeProperty;
         jumpForce = upgradeProperty.jump;
         moveSpeed = upgradeProperty.moveSpeed;
     }
@@ -139,6 +132,10 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     public bool CheckGrounded()
     {
         RaycastHit2D hit = Physics2D.Raycast(groundCheck.position, Vector2.down, groundRadius, LayerMaskManager.Instance.groundableLayer);
+        if (hit.collider?.gameObject.layer == gameObject.layer)
+        {
+            return hit.collider != null;
+        }
         if (!isProcessTrampoline && hit.collider != null && hit.collider.TryGetComponent(out ITrampolineable component))
         {
             isProcessTrampoline = true;
@@ -168,7 +165,8 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     public void ModifierUpgradeProperty(float multiplier)
     {
-        characterUpgradeProperty.multiplier(multiplier);
+        characterUpgradeProperty.Multiplier(multiplier);
+        UpdateCharacterUpgrade(characterUpgradeProperty);
     }
 
     public virtual bool EnableTakeDamage() => !isDead;

@@ -42,7 +42,7 @@ public abstract class CharacterControllerBase : MonoBehaviour
     [SerializeField]
     protected float wallCheckDistance = 0.5f;
     [SerializeField]
-    protected float wallJumpForce = 3;
+    protected float wallJumpForce = 8;
 
     protected List<SpriteRenderer> spriteRenderers = new();
 
@@ -70,6 +70,8 @@ public abstract class CharacterControllerBase : MonoBehaviour
     [ReadOnly]
     protected bool enableDoubleJump;
 
+    protected bool isDead;
+
     protected const float inertiaRate = 5f;
     const float accelerationSmoothRate = 0.1f;
     const float changeDirectionTime = 0.1f;
@@ -79,6 +81,13 @@ public abstract class CharacterControllerBase : MonoBehaviour
     protected CancellationTokenSource colorCancellationTokenSource;
     protected CancellationTokenSource alphaCancellationTokenSource;
 
+    protected virtual void OnDisable()
+    {
+        jumpCancellationTokenSource?.Cancel();
+        forceCancellationTokenSource?.Cancel();
+        colorCancellationTokenSource?.Cancel();
+        alphaCancellationTokenSource?.Cancel();
+    }
 
     protected virtual void Awake()
     {
@@ -95,18 +104,33 @@ public abstract class CharacterControllerBase : MonoBehaviour
         spriteRenderers = TransformHelper.GetComponentsRecursively<SpriteRenderer>(transform);
     }
 
-    protected void Move()
+    protected void ValidateMove()
     {
-        if (!enableMove)
+        if (!enableMove || isDead)
         {
             return;
         }
-        float targetVelocityX = GetMoveTargetVelocityX();
+        Move();
+    }
+
+    protected virtual void Move()
+    {
+        float targetVelocityX = GetMoveTargetDirectionX() * moveSpeed;
         float newVelocityX = Mathf.SmoothDamp(rigidBody.linearVelocityX, targetVelocityX, ref currentVelocityX, accelerationSmoothRate);
 
         rigidBody.linearVelocity = new Vector2(newVelocityX, rigidBody.linearVelocityY);
-        if (targetVelocityX != 0)
-            SetDirection(targetVelocityX > 0);
+        SetDirection(targetVelocityX);
+    }
+
+    protected void SetDirectionFromMoveTargetVelocity()
+    {
+        SetDirection(GetMoveTargetDirectionX());
+    }
+
+    protected void SetDirection(float velocityX)
+    {
+        if (velocityX != 0)
+            SetDirection(velocityX > 0);
     }
 
     protected void SetDirection(bool isRightDirection)
@@ -280,5 +304,5 @@ public abstract class CharacterControllerBase : MonoBehaviour
         animator.SetFloat(isValueHash, smoothValue);
     }
 
-    protected abstract float GetMoveTargetVelocityX();
+    protected abstract float GetMoveTargetDirectionX();
 }

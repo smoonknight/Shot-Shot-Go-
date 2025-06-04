@@ -14,6 +14,14 @@ public class UpgradeProperty
     public float jump;
     public int exp;
 
+    const float sizeMultiplierRate = 0.1f;
+    const float moveSpeedMultiplierRate = 0.2f;
+    const float speedMultiplierRate = 0.15f;
+    const float healthMultiplierRate = 1.25f;
+    const float damageMultiplierRate = 1.1f;
+    const float jumpMultiplierRate = 0.05f;
+    const float expMultiplierRate = 1.5f;
+
     public UpgradeProperty Copy() => new()
     {
         size = size,
@@ -25,15 +33,15 @@ public class UpgradeProperty
         exp = exp,
     };
 
-    public void multiplier(float value)
+    public void Multiplier(float value)
     {
-        size *= value;
-        moveSpeed *= value;
-        speed *= value;
-        health = Mathf.CeilToInt(health * value);
-        damage = Mathf.CeilToInt(damage * value);
-        jump *= value;
-        exp = Mathf.CeilToInt(exp * value);
+        size *= value * sizeMultiplierRate;
+        moveSpeed *= value * moveSpeedMultiplierRate;
+        speed *= value * speedMultiplierRate;
+        health = Mathf.CeilToInt(health * value * healthMultiplierRate);
+        damage = Mathf.CeilToInt(damage * value * damageMultiplierRate);
+        jump *= value * jumpMultiplierRate;
+        exp = Mathf.CeilToInt(exp * value * expMultiplierRate);
     }
 }
 

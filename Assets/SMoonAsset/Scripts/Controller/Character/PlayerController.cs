@@ -28,8 +28,9 @@ public class PlayerController : PlayableCharacterControllerBase
         input.JumpAction.performed += JumpActionPerformed;
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
+        base.OnDisable();
         input.JumpAction.performed -= JumpActionPerformed;
     }
 
@@ -56,7 +57,7 @@ public class PlayerController : PlayableCharacterControllerBase
     private void WallJump()
     {
         Vector2 direction = new(isFacingRight ? -1f : 1f, 1f);
-        SetForce(direction * wallJumpForce, 2f, true, () => isGrounded);
+        SetForce(direction * wallJumpForce, 2f, true, () => isGrounded || (Mathf.Abs(rigidBody.linearVelocityX) < 0.05f && !isWallHanging));
     }
 
     private void ValidateDoubleJump()
@@ -85,7 +86,7 @@ public class PlayerController : PlayableCharacterControllerBase
         GameManager.Instance.RaiseGameOver();
     }
 
-    protected override float GetMoveTargetVelocityX() => input.Move.x * moveSpeed;
+    protected override float GetMoveTargetDirectionX() => input.Move.x;
     public override bool IsPlayer() => true;
     public override bool HoldingJump() => input.Jump;
     public override UpgradeProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultCharacterUpgradeProperty();
@@ -136,7 +137,7 @@ public class PlayerController : PlayableCharacterControllerBase
 
     private void PlayStateFixedUpdate()
     {
-        Move();
+        ValidateMove();
         rigidBody.constraints = isWallHanging ? RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation : RigidbodyConstraints2D.FreezeRotation;
     }
 
@@ -204,15 +205,12 @@ public class PlayerController : PlayableCharacterControllerBase
             playState = new(playerController);
         }
 
-        protected override BaseState<PlayerController> GetState(PlayerStateType type)
+        protected override BaseState<PlayerController> GetState(PlayerStateType type) => type switch
         {
-            return type switch
-            {
-                PlayerStateType.Cutscene => cutsceneState,
-                PlayerStateType.Play => playState,
-                _ => throw new System.NotImplementedException(),
-            };
-        }
+            PlayerStateType.Cutscene => cutsceneState,
+            PlayerStateType.Play => playState,
+            _ => throw new System.NotImplementedException(),
+        };
     }
 }
 

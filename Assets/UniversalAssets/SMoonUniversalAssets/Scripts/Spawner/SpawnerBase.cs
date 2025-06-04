@@ -19,6 +19,15 @@ namespace SMoonUniversalAsset
 
         public virtual void Initialize()
         {
+            for (int i = 0; i < spawnProperties.Count; i++)
+            {
+                T instance = UnityEngine.Object.Instantiate(spawnProperties[i].component, pool);
+                instance.gameObject.SetActive(false);
+
+                var prop = spawnProperties[i];
+                prop.instance = instance;
+                spawnProperties[i] = prop;
+            }
             int poolSize = GetInitialPoolSize();
             spawnedPropertyPool = new List<SpawnProperty>(poolSize);
 
@@ -34,7 +43,7 @@ namespace SMoonUniversalAsset
         private void AddSpawnPropertyToSpawnedPropertyPool(List<SpawnProperty> spawnProperties, G type, bool setActiveValue, out T newComponent)
         {
             SpawnProperty selectedSpawnProperty = spawnProperties.FirstOrDefault(spawnProperty => spawnProperty.type.Equals(type));
-            if (selectedSpawnProperty.component == null)
+            if (selectedSpawnProperty.instance == null)
             {
                 throw new IndexOutOfRangeException(type + " not found!");
             }
@@ -43,9 +52,9 @@ namespace SMoonUniversalAsset
 
         private void AddSpawnPropertyToSpawnedPropertyPool(SpawnProperty spawnedProperty, bool setActiveValue, out T component)
         {
-            component = UnityEngine.Object.Instantiate(spawnedProperty.component, pool);
+            component = UnityEngine.Object.Instantiate(spawnedProperty.instance, pool);
             component.gameObject.SetActive(setActiveValue);
-            spawnedProperty.component = component;
+            spawnedProperty.instance = component;
             spawnedPropertyPool.Add(spawnedProperty);
         }
 
@@ -54,7 +63,7 @@ namespace SMoonUniversalAsset
             T component;
             foreach (var spawnedProperty in spawnedPropertyPool)
             {
-                if (spawnedProperty.component.gameObject.activeInHierarchy)
+                if (spawnedProperty.instance.gameObject.activeInHierarchy)
                 {
                     continue;
                 }
@@ -63,7 +72,7 @@ namespace SMoonUniversalAsset
                     continue;
                 }
 
-                component = spawnedProperty.component;
+                component = spawnedProperty.instance;
                 if (position.HasValue)
                     component.transform.position = position.Value;
 
@@ -106,7 +115,7 @@ namespace SMoonUniversalAsset
             int count = 0;
             foreach (var selector in spawnedPropertyPool)
             {
-                if (selector.component.gameObject.activeInHierarchy)
+                if (selector.instance.gameObject.activeInHierarchy)
                     count++;
             }
             return count;
@@ -120,6 +129,8 @@ namespace SMoonUniversalAsset
         {
             public G type;
             public T component;
+            [ReadOnly]
+            public T instance;
         }
     }
 }
