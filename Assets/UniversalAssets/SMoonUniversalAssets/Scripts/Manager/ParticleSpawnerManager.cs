@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace SMoonUniversalAsset
 {
-    public class ParticleSpawnerManager : SpawnerManager<ParticleSpawner, ParticleSystem, ParticleType>
+    public class ParticleSpawnerManager : SpawnerManagerWithDDOL<ParticleSpawner, ParticleSystem, ParticleType>
     {
 
     }

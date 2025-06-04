@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using SMoonUniversalAsset;
 using UnityEngine;
 
 public abstract class CharacterControllerBase : MonoBehaviour
@@ -42,6 +44,8 @@ public abstract class CharacterControllerBase : MonoBehaviour
     [SerializeField]
     protected float wallJumpForce = 3;
 
+    protected List<SpriteRenderer> spriteRenderers = new();
+
     float currentVelocityX;
 
     int moveHash;
@@ -70,8 +74,11 @@ public abstract class CharacterControllerBase : MonoBehaviour
     const float accelerationSmoothRate = 0.1f;
     const float changeDirectionTime = 0.1f;
 
-    private CancellationTokenSource jumpCancellationTokenSource;
-    private CancellationTokenSource forceCancellationTokenSource;
+    protected CancellationTokenSource jumpCancellationTokenSource;
+    protected CancellationTokenSource forceCancellationTokenSource;
+    protected CancellationTokenSource colorCancellationTokenSource;
+    protected CancellationTokenSource alphaCancellationTokenSource;
+
 
     protected virtual void Awake()
     {
@@ -84,6 +91,8 @@ public abstract class CharacterControllerBase : MonoBehaviour
 
         jumpHash = Animator.StringToHash("Jump");
         wallHangHash = Animator.StringToHash("Wall Hang");
+
+        spriteRenderers = TransformHelper.GetComponentsRecursively<SpriteRenderer>(transform);
     }
 
     protected void Move()
@@ -170,6 +179,79 @@ public abstract class CharacterControllerBase : MonoBehaviour
         enableMove = true;
     }
 
+    public async void ProcessColorChangePingPong(Color colorA, Color colorB, Color finalColor, float changeInterval, int totalPingPong)
+    {
+        CancellationToken cancellationToken = colorCancellationTokenSource.ResetToken();
+
+        for (int i = 0; i < totalPingPong; i++)
+        {
+            await LerpGeneric(colorA, colorB, changeInterval, Color.Lerp, ColorChange, cancellationToken);
+            await LerpGeneric(colorB, colorA, changeInterval, Color.Lerp, ColorChange, cancellationToken);
+        }
+
+        ColorChange(finalColor);
+    }
+
+    public async void ProcessAlphaChangePingPong(float valueA, float valueB, float finalValue, float changeInterval, int totalPingPong)
+    {
+        CancellationToken cancellationToken = alphaCancellationTokenSource.ResetToken();
+
+        for (int i = 0; i < totalPingPong; i++)
+        {
+            await LerpGeneric(valueA, valueB, changeInterval, Mathf.Lerp, AlphaChange, cancellationToken);
+            await LerpGeneric(valueB, valueA, changeInterval, Mathf.Lerp, AlphaChange, cancellationToken);
+        }
+
+        AlphaChange(finalValue);
+    }
+
+
+
+    /// <summary>
+    /// Generic Lerp Coroutine.
+    /// </summary>
+    /// <typeparam name="T">Tipe data yang ingin diinterpolasi</typeparam>
+    /// <param name="from">Nilai awal</param>
+    /// <param name="to">Nilai akhir</param>
+    /// <param name="duration">Waktu interpolasi</param>
+    /// <param name="lerpFunc">Fungsi Lerp, contoh: Color.Lerp / Mathf.Lerp</param>
+    /// <param name="applyFunc">Fungsi untuk menerapkan hasil interpolasi</param>
+    /// <param name="cancellationToken">Token pembatalan</param>
+    protected async UniTask LerpGeneric<T>(
+        T from,
+        T to,
+        float duration,
+        Func<T, T, float, T> lerpFunc,
+        Action<T> applyFunc,
+        CancellationToken cancellationToken)
+    {
+        float time = 0f;
+
+        while (time < duration)
+        {
+            if (cancellationToken.IsCancellationRequested) return;
+
+            float t = time / duration;
+            applyFunc(lerpFunc(from, to, t));
+
+            await UniTask.Yield(PlayerLoopTiming.Update);
+            time += Time.deltaTime;
+        }
+
+        applyFunc(to);
+    }
+
+    public void ColorChange(Color color)
+    {
+        foreach (var sr in spriteRenderers)
+            sr.color = color;
+    }
+
+    public void AlphaChange(float opacity)
+    {
+        foreach (var sr in spriteRenderers)
+            sr.SetOpacity(opacity);
+    }
 
     protected void UpdateMoveAnimation()
     {

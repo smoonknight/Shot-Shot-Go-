@@ -14,4 +14,9 @@ public class GameManager : SingletonWithDontDestroyOnLoad<GameManager>
     public List<TypeUpgradeProperty<MagicSwordItemType>> GetCopyOfDefaultMagicSwordTypeUpgradeProperties() => defaultItem.defaultMagicSwordItemTypeUpgradePropertyCollector.GetCopyOfTypeUpgradeProperties().ToList();
 
     internal TypeUpgradeProperty<EnemyType> GetCopyOfDefaultEnemyCharacterUpgradeProperty(EnemyType type) => defaultItem.enemyTypeUpgradePropertyCollector.GetUpgradeProperty(type).Copy();
+
+    internal void RaiseGameOver()
+    {
+        Debug.Log("Game Over");
+    }
 }

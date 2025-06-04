@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -18,13 +19,14 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     protected List<MagicSwordItemController> magicSwordItemControllers = new();
 
     protected Vector3 initialScale;
-    protected const float attackInterval = 0.2f;
 
     protected bool isGrounded;
     protected float coyoteCounter;
     protected float jumpBufferCounter;
 
     protected bool isProcessTrampoline;
+
+    protected bool isDead;
 
     protected override void Awake()
     {
@@ -45,6 +47,9 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     public void SetupPlayable()
     {
+        isDead = false;
+        ColorChange(Color.white);
+        AlphaChange(1);
         SetupUpgradeProperties();
         UpdateCharacterUpgrade(characterUpgradeProperty);
         SetupInitialMagicSwordProperties();
@@ -59,7 +64,8 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     void UpdateCharacterUpgrade(UpgradeProperty upgradeProperty)
     {
         jumpForce = upgradeProperty.jump;
-        moveSpeed = upgradeProperty.speed;
+        moveSpeed = upgradeProperty.moveSpeed;
+
     }
 
     void SetupInitialMagicSwordProperties()
@@ -161,13 +167,25 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         }
     }
 
-    public void TakeDamage(int damage)
+    public void ModifierUpgradeProperty(float multiplier)
+    {
+        characterUpgradeProperty.multiplier(multiplier);
+    }
+
+    public virtual bool EnableTakeDamage() => !isDead;
+    public virtual void TakeDamage(int damage)
     {
         characterUpgradeProperty.health -= damage;
+        if (characterUpgradeProperty.health <= 0 && !isDead)
+        {
+            isDead = true;
+            OnZeroHealth();
+        }
     }
 
     public abstract bool IsPlayer();
     public abstract bool HoldingJump();
+    public abstract void OnZeroHealth();
     public abstract UpgradeProperty GetCharacterUpgradeProperty();
 }
 

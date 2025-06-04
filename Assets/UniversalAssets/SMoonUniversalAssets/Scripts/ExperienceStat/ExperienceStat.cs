@@ -13,14 +13,9 @@ public class ExperienceStat
     /// </summary>
     public int NormalizedLevel => GetLevel(exp, 0);
     public int exp;
-    [NonSerialized]
     public int startLevel = 1;
-    [NonSerialized]
     public int maximumLevel = 4;
-    [NonSerialized]
     public float factor = 1000;
-    [NonSerialized]
-    public bool useExperienceTierAsReference;
 
     public int GetLevel(int exp) => GetLevel(exp, startLevel);
     public int GetLevel(int exp, int startLevel) => Math.Min(maximumLevel, (int)Math.Floor(startLevel + (Math.Sqrt(1 + 8 * exp / factor) / 2)));
@@ -52,15 +47,13 @@ public class ExperienceStat
         }
     }
 
-    public void AddExperience(int amount, out bool isLevelUp, out (int currentLevel, int levelUpCount) result)
+    public void AddExperience(int amount, out bool isLevelUp, out int currentLevel, out int levelUpCount)
     {
         int previousLevel = Level;
         AddExperience(amount);
-        int currentLevel = Level;
+        currentLevel = Level;
 
         isLevelUp = currentLevel > previousLevel;
-        int levelUpCount = currentLevel - previousLevel;
-
-        result = (currentLevel, levelUpCount);
+        levelUpCount = currentLevel - previousLevel;
     }
 }

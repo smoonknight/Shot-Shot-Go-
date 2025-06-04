@@ -9,7 +9,7 @@ public class PlayerController : PlayableCharacterControllerBase
 
     private PlayerStateMachine playerStateMachine;
 
-    private TimeChecker attackIntervalTimeChecker = new(attackInterval);
+    private TimeChecker attackIntervalTimeChecker = new();
 
     bool isWallHanging;
 
@@ -80,6 +80,11 @@ public class PlayerController : PlayableCharacterControllerBase
         return false;
     }
 
+    public override void OnZeroHealth()
+    {
+        GameManager.Instance.RaiseGameOver();
+    }
+
     protected override float GetMoveTargetVelocityX() => input.Move.x * moveSpeed;
     public override bool IsPlayer() => true;
     public override bool HoldingJump() => input.Jump;
@@ -121,9 +126,10 @@ public class PlayerController : PlayableCharacterControllerBase
         UpdateJumpAnimation(isGrounded);
         UpdateWallHangAnimation(isWallHanging);
 
-        if (input.Fire && attackIntervalTimeChecker.IsUpdatingTime())
+        if (input.Fire && attackIntervalTimeChecker.IsDurationEnd())
         {
             Fire();
+            attackIntervalTimeChecker.UpdateTime(characterUpgradeProperty.speed);
         }
     }
 

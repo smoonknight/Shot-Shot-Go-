@@ -56,7 +56,7 @@ public static class TransformHelper
 
     public static List<T> GetComponentsRecursively<T>(Transform currentTransform) where T : Component
     {
-        List<T> componentsList = new List<T>();
+        List<T> componentsList = new();
 
         void GetComponents(Transform transform)
         {

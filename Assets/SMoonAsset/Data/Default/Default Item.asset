@@ -30,7 +30,8 @@ MonoBehaviour:
       damage: 20
   defaultCharacterUpgradeProperty:
     size: 0
-    speed: 6
+    moveSpeed: 6
+    speed: 0.5
     health: 20
     damage: 10
     jump: 8
@@ -40,6 +41,7 @@ MonoBehaviour:
     - type: 0
       upgradeProperty:
         size: 1
+        moveSpeed: 0
         speed: 10
         health: 0
         damage: 15
@@ -48,6 +50,7 @@ MonoBehaviour:
     - type: 1
       upgradeProperty:
         size: 1
+        moveSpeed: 0
         speed: 10
         health: 0
         damage: 10
@@ -56,6 +59,7 @@ MonoBehaviour:
     - type: 2
       upgradeProperty:
         size: 1.5
+        moveSpeed: 0
         speed: 7
         health: 0
         damage: 25
@@ -66,8 +70,9 @@ MonoBehaviour:
     - type: 0
       upgradeProperty:
         size: 0
+        moveSpeed: 0
         speed: 3
         health: 10
         damage: 5
         jump: 4
-        exp: 0
+        exp: 5

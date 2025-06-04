@@ -4,7 +4,7 @@ using System.Linq;
 using SMoonUniversalAsset;
 using UnityEngine;
 
-public class MagicSwordSpawnerManager : SpawnerManager<MagicSwordSpawner, MagicSwordItemController, MagicSwordItemType>
+public class MagicSwordSpawnerManager : SpawnerManagerWithDDOL<MagicSwordSpawner, MagicSwordItemController, MagicSwordItemType>
 {
 
 }

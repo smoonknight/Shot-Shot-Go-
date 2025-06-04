@@ -616,5 +616,12 @@ MonoBehaviour:
   initialMagicSwordProperties:
   - type: 0
     amount: 5
+  characterUpgradeProperty:
+    size: 0
+    speed: 0
+    health: 0
+    damage: 0
+    jump: 0
+    exp: 0
   magicSwordTypeUpgradePropertyCollector:
     typeUpgradeProperties: []

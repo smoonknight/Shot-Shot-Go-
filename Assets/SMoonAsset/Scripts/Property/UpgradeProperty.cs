@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 [Serializable]
 public class UpgradeProperty
 {
     public float size;
+    public float moveSpeed;
     public float speed;
     public int health;
     public int damage;
@@ -15,12 +17,24 @@ public class UpgradeProperty
     public UpgradeProperty Copy() => new()
     {
         size = size,
+        moveSpeed = moveSpeed,
         speed = speed,
         health = health,
         damage = damage,
         jump = jump,
         exp = exp,
     };
+
+    public void multiplier(float value)
+    {
+        size *= value;
+        moveSpeed *= value;
+        speed *= value;
+        health = Mathf.CeilToInt(health * value);
+        damage = Mathf.CeilToInt(damage * value);
+        jump *= value;
+        exp = Mathf.CeilToInt(exp * value);
+    }
 }
 
 [Serializable]

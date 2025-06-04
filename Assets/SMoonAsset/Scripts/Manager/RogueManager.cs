@@ -9,12 +9,15 @@ public class RogueManager : Singleton<RogueManager>
 {
     [SerializeField]
     private ExperienceStat rogueExperienceStat;
+    [Space]
     [SerializeField]
     private List<LevelEnemyProperty> levelEnemyProperties;
     [SerializeField]
     private List<TilemapProperty> tilemapProperties;
     [SerializeField]
     private List<EnvironmentProperty> environmentProperties;
+    [SerializeField]
+    private int spawnExperience = 5;
 
     private TimeChecker nextSpawnChecker;
     private LevelEnemyProperty latestLevelEnemyProperty;
@@ -27,7 +30,11 @@ public class RogueManager : Singleton<RogueManager>
 
     const float transitionEnvironmentChangeDuration = 5;
 
+    const float modifierRate = 0.3f;
+
     CancellationTokenSource cancellationTokenSource;
+
+    int currentLevel = 1;
 
     protected override void Awake()
     {
@@ -60,12 +67,12 @@ public class RogueManager : Singleton<RogueManager>
 
         if (latestLevelEnemyProperty.maximumEnemy > EnemySpawnerManager.Instance.GetActiveSpawn())
         {
-            Debug.Log(EnemySpawnerManager.Instance.GetActiveSpawn());
             for (int i = 0; i < latestLevelEnemyProperty.amountEnemy; i++)
             {
                 var randomEnemy = latestLevelEnemyProperty.enemyTypeRateCollector.GetRandomData();
                 Vector2 position = GetSampleTilemapController().GetRandomPointInSpawnAreas();
-                EnemySpawnerManager.Instance.GetSpawned(randomEnemy, position);
+                EnemyController enemyController = EnemySpawnerManager.Instance.GetSpawned(randomEnemy, position);
+                enemyController.ModifierUpgradeProperty(1 + currentLevel * modifierRate);
             }
         }
 
@@ -140,9 +147,9 @@ public class RogueManager : Singleton<RogueManager>
 
     private void AddExperience(int exp)
     {
-        rogueExperienceStat.AddExperience(exp, out bool isLevelUp, out (int currentLevel, int levelUpCount) result);
+        rogueExperienceStat.AddExperience(exp, out bool isLevelUp, out currentLevel, out _);
         if (isLevelUp)
-            latestLevelEnemyProperty = GetLevelEnemyProperty(result.currentLevel);
+            latestLevelEnemyProperty = GetLevelEnemyProperty(currentLevel);
     }
 
     private LevelEnemyProperty GetLevelEnemyProperty(int level) => levelEnemyProperties.Where(levelEnemyProperty => levelEnemyProperty.level <= level)
@@ -157,7 +164,6 @@ public class LevelEnemyProperty
     public int amountEnemy = 2;
     public int maximumEnemy = 10;
     public int nextEnemySpawnDuration = 5;
-    public int multiplierUpgradeProperty = 1;
     public RateCollector<EnemyType> enemyTypeRateCollector;
 }
 

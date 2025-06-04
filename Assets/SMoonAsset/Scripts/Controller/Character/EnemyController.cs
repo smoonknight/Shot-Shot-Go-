@@ -22,6 +22,12 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
     CancellationTokenSource squashCancellationTokenSource;
 
+    public override void TakeDamage(int damage)
+    {
+        ProcessColorChangePingPong(Color.white, Color.black, Color.white, 0.2f, 1);
+        base.TakeDamage(damage);
+    }
+
     protected override float GetMoveTargetVelocityX()
     {
         return 0;
@@ -75,6 +81,12 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         transform.localScale = finalScale;
     }
 
+    public override async void OnZeroHealth()
+    {
+        CancellationToken cancellationToken = alphaCancellationTokenSource.ResetToken();
+        await LerpGeneric(1f, 0f, 0.5f, Mathf.Lerp, AlphaChange, cancellationToken);
+        gameObject.SetActive(false);
+    }
 }
 
 public enum EnemyType
