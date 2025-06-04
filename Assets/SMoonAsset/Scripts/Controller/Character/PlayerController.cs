@@ -1,4 +1,3 @@
-using System;
 using SMoonUniversalAsset;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -6,11 +5,6 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Input))]
 public class PlayerController : PlayableCharacterControllerBase
 {
-
-    private bool isGrounded;
-    private float coyoteCounter;
-    private float jumpBufferCounter;
-
     private Input input;
 
     private PlayerStateMachine playerStateMachine;
@@ -28,8 +22,9 @@ public class PlayerController : PlayableCharacterControllerBase
         playerStateMachine.Initialize(this, PlayerStateType.Play);
     }
 
-    private void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable();
         input.JumpAction.performed += JumpActionPerformed;
     }
 
@@ -55,7 +50,7 @@ public class PlayerController : PlayableCharacterControllerBase
             WallJump();
         }
         ValidateDoubleJump();
-        jumpBufferCounter = jumpBufferTime;
+        TakeJump();
     }
 
     private void WallJump()
@@ -74,20 +69,6 @@ public class PlayerController : PlayableCharacterControllerBase
         enableDoubleJump = false;
     }
 
-    private void Jump()
-    {
-        rigidBody.linearVelocity = new Vector2(rigidBody.linearVelocity.x, jumpForce);
-        coyoteCounter = 0;
-    }
-
-    private void ApplyBetterJump()
-    {
-        if (rigidBody.linearVelocity.y < 0)
-            rigidBody.linearVelocityY += fallMultiplier * Physics2D.gravity.y * Time.deltaTime;
-        else if (rigidBody.linearVelocity.y > 0 && !input.Jump)
-            rigidBody.linearVelocityY += lowJumpMultiplier * Physics2D.gravity.y * Time.deltaTime;
-    }
-
     private bool ValidateWallHanging()
     {
         bool isTouchingWall = CheckWall();
@@ -101,6 +82,8 @@ public class PlayerController : PlayableCharacterControllerBase
 
     protected override float GetMoveTargetVelocityX() => input.Move.x * moveSpeed;
     public override bool IsPlayer() => true;
+    public override bool HoldingJump() => input.Jump;
+    public override UpgradeProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultCharacterUpgradeProperty();
 
     #region Play State
     private void PlayStateEnter()
@@ -111,7 +94,7 @@ public class PlayerController : PlayableCharacterControllerBase
 
     private void PlayStateUpdate()
     {
-        isGrounded = Physics2D.Raycast(groundCheck.position, Vector2.down, groundRadius, LayerMaskManager.Instance.groundLayer);
+        isGrounded = CheckGrounded();
 
         if (isGrounded)
         {
@@ -128,11 +111,7 @@ public class PlayerController : PlayableCharacterControllerBase
 
         jumpBufferCounter -= Time.deltaTime;
 
-        if (jumpBufferCounter > 0 && coyoteCounter > 0)
-        {
-            Jump();
-            jumpBufferCounter = 0;
-        }
+        ValidateJump();
 
         isWallHanging = ValidateWallHanging();
 

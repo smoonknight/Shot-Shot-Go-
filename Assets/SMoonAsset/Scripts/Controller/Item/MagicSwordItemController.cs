@@ -1,9 +1,11 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using SMoonUniversalAsset;
 using UnityEngine;
 using UnityEngine.Events;
 using Random = UnityEngine.Random;
+using UniTaskExtensions = SMoonUniversalAsset.UniTaskExtensions;
 
 [RequireComponent(typeof(BoxCollider2D))]
 [RequireComponent(typeof(Rigidbody2D))]
@@ -53,9 +55,9 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         //TODO Buat game ini jadi rogue like, hilangkan magic sword dropped item
     }
 
-    public override void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition)
+    public override void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition, UpgradeProperty upgradeProperty)
     {
-        base.Initialize(playableCharacterControllerBase, isPlayerAsMaster, initialPosition);
+        base.Initialize(playableCharacterControllerBase, isPlayerAsMaster, initialPosition, upgradeProperty);
         RandomizeStandPosition();
         onAttackingTask = GetAttackTask(itemBase.type);
     }
@@ -231,21 +233,6 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
             await UniTask.Yield();
         }
 
-        await DelayWithCancel(0.5f, cancellationToken);
+        await UniTaskExtensions.DelayWithCancel(0.5f, cancellationToken);
     }
-
-    private async UniTask DelayWithCancel(float duration, CancellationToken token)
-    {
-        float time = 0f;
-        while (time < duration)
-        {
-            if (token.IsCancellationRequested)
-                return;
-
-            time += Time.deltaTime;
-            await UniTask.Yield();
-        }
-    }
-
-
 }

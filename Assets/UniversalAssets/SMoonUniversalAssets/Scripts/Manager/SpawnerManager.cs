@@ -14,4 +14,6 @@ public class SpawnerManager<T, G, C> : SingletonWithDontDestroyOnLoad<SpawnerMan
         base.Awake();
         spawner.Initialize();
     }
+
+    public int GetActiveSpawn() => spawner.GetActiveSpawn();
 }

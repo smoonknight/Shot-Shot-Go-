@@ -28,3 +28,46 @@ MonoBehaviour:
       quantity: 15
       type: 2
       damage: 20
+  defaultCharacterUpgradeProperty:
+    size: 0
+    speed: 6
+    health: 20
+    damage: 10
+    jump: 8
+    exp: 0
+  defaultMagicSwordItemTypeUpgradePropertyCollector:
+    typeUpgradeProperties:
+    - type: 0
+      upgradeProperty:
+        size: 1
+        speed: 10
+        health: 0
+        damage: 15
+        jump: 0
+        exp: 0
+    - type: 1
+      upgradeProperty:
+        size: 1
+        speed: 10
+        health: 0
+        damage: 10
+        jump: 0
+        exp: 0
+    - type: 2
+      upgradeProperty:
+        size: 1.5
+        speed: 7
+        health: 0
+        damage: 25
+        jump: 0
+        exp: 0
+  enemyTypeUpgradePropertyCollector:
+    typeUpgradeProperties:
+    - type: 0
+      upgradeProperty:
+        size: 0
+        speed: 3
+        health: 10
+        damage: 5
+        jump: 4
+        exp: 0

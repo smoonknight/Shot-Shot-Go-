@@ -31,6 +31,16 @@ namespace SMoonUniversalAsset
             }
         }
 
+        private void AddSpawnPropertyToSpawnedPropertyPool(List<SpawnProperty> spawnProperties, G type, bool setActiveValue, out T newComponent)
+        {
+            SpawnProperty selectedSpawnProperty = spawnProperties.FirstOrDefault(spawnProperty => spawnProperty.type.Equals(type));
+            if (selectedSpawnProperty.component == null)
+            {
+                throw new IndexOutOfRangeException(type + " not found!");
+            }
+            AddSpawnPropertyToSpawnedPropertyPool(selectedSpawnProperty, setActiveValue, out newComponent);
+        }
+
         private void AddSpawnPropertyToSpawnedPropertyPool(SpawnProperty spawnedProperty, bool setActiveValue, out T component)
         {
             component = UnityEngine.Object.Instantiate(spawnedProperty.component, pool);
@@ -41,6 +51,7 @@ namespace SMoonUniversalAsset
 
         public T GetSpawned(G type, Vector3? position = null, Quaternion? rotation = null, Func<Vector3> onSetDeactiveOnDurationUpdate = null)
         {
+            T component;
             foreach (var spawnedProperty in spawnedPropertyPool)
             {
                 if (spawnedProperty.component.gameObject.activeInHierarchy)
@@ -52,7 +63,7 @@ namespace SMoonUniversalAsset
                     continue;
                 }
 
-                T component = spawnedProperty.component;
+                component = spawnedProperty.component;
                 if (position.HasValue)
                     component.transform.position = position.Value;
 
@@ -63,18 +74,12 @@ namespace SMoonUniversalAsset
                 OnSpawn(component, type, onSetDeactiveOnDurationUpdate);
                 return component;
             }
-            SpawnProperty selectedSpawnProperty = spawnProperties.FirstOrDefault(spawnProperty => spawnProperty.type.Equals(type));
-            if (selectedSpawnProperty.component == null)
-            {
-                throw new IndexOutOfRangeException(type + " not found!");
-            }
 
-            AddSpawnPropertyToSpawnedPropertyPool(selectedSpawnProperty, true, out T newComponent);
-            OnSpawn(newComponent, type, onSetDeactiveOnDurationUpdate);
+            AddSpawnPropertyToSpawnedPropertyPool(spawnProperties, type, true, out component);
+            OnSpawn(component, type, onSetDeactiveOnDurationUpdate);
 
-            return selectedSpawnProperty.component;
+            return component;
         }
-
 
         protected async void SetDeactiveOnDuration(T component, float duration, Func<Vector3> onSetDeactiveOnDurationUpdate = null)
         {
@@ -94,6 +99,17 @@ namespace SMoonUniversalAsset
                 await UniTask.WaitForSeconds(duration);
             }
             component.gameObject.SetActive(false);
+        }
+
+        public int GetActiveSpawn()
+        {
+            int count = 0;
+            foreach (var selector in spawnedPropertyPool)
+            {
+                if (selector.component.gameObject.activeInHierarchy)
+                    count++;
+            }
+            return count;
         }
 
         public abstract void OnSpawn(T component, G type, Func<Vector3> onSetDeactiveOnDurationUpdate = null);
