@@ -43,7 +43,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         initialScale = transform.localScale;
     }
 
-    public void SetupPlayable()
+    public virtual void SetupPlayable()
     {
         isDead = false;
         ColorChange(Color.white);
@@ -57,7 +57,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     {
         characterUpgradeProperty = upgradeProperty;
         jumpForce = upgradeProperty.jump;
-        moveSpeed = upgradeProperty.moveSpeed;
+        moveSpeed = upgradeProperty.speed;
     }
 
     void SetupInitialMagicSwordProperties()

@@ -1,6 +1,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using SMoonUniversalAsset;
+using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 using UniTaskExtensions = SMoonUniversalAsset.UniTaskExtensions;
 
@@ -11,6 +12,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     public EnemyStateMachine enemyStateMachine;
 
     private bool holdingJump;
+    private bool isWantToMoving;
 
     public override UpgradeProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultEnemyCharacterUpgradeProperty(type).upgradeProperty;
 
@@ -22,19 +24,34 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     const float waitingNormalAfterSquasedDuration = 0.75f;
     const float normalAfterSquasedDuration = 0.10f;
     const float trampolineTakeDamageCooldownDuration = 0.1f;
+    const float minimumWantToJumpTolerance = 3;
+    const float maximumWantToJumpTolerance = 6;
+    const float playerDetection = 15;
+    const float minimumInterestDuration = 5;
+    const float maximumInterestDuration = 15;
 
     private Vector3 targetMovePosition;
     private FillChecker wantToJumpFillChecker = new(1);
 
     CancellationTokenSource squashCancellationTokenSource;
+    CancellationTokenSource holdingJumpRandomizerCancellationTokenSource;
 
     TimeChecker trampolineTakeDamageTimeChecker = new(trampolineTakeDamageCooldownDuration, false);
+    TimeChecker interestTimeChecker = new();
+
+    private PlayerController playerController;
 
     protected override void Awake()
     {
         base.Awake();
         enemyStateMachine = new();
         enemyStateMachine.Initialize(this, EnemyStateType.Scouting);
+    }
+
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        holdingJumpRandomizerCancellationTokenSource?.Cancel();
     }
 
     private void Update()
@@ -45,6 +62,12 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     private void FixedUpdate()
     {
         enemyStateMachine.CurrentState.FixedUpdateState();
+    }
+
+    public override void SetupPlayable()
+    {
+        base.SetupPlayable();
+        enemyStateMachine?.SetState(EnemyStateType.Scouting);
     }
 
     public override void TakeDamage(int damage)
@@ -63,23 +86,88 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
     protected override float GetMoveTargetDirectionX()
     {
-        float deltaX = targetMovePosition.x - transform.position.x;
+        if (!isWantToMoving)
+        {
+            return 0;
+        }
+        float deltaX = targetMovePosition.x - groundCheck.position.x;
 
         if (Mathf.Abs(deltaX) < 0.1f)
-            return 0;
-
-        int direction = deltaX > 0 ? 1 : -1;
-
-        Vector2 origin = new(groundCheck.position.x + direction, groundCheck.position.y);
-        RaycastHit2D groundHit = Physics2D.Raycast(origin, Vector2.down, groundRadius, LayerMaskManager.Instance.groundableLayer);
-
-        if (isGrounded && !groundHit)
         {
-            SetForce(new Vector2(direction, 1) * jumpForce, 2f, true, () => isGrounded || (rigidBody.linearVelocityX == 0));
+            isWantToMoving = false;
             return 0;
         }
 
+        int direction = deltaX > 0 ? 1 : -1;
+
+        RaycastHit2D groundHit = GetRaycastHit2DOnFrontGround(direction, groundRadius, 1);
+
+        if (isGrounded && !groundHit)
+        {
+            if (wantToJumpFillChecker.PushFill(Time.deltaTime))
+            {
+                ProcessHoldingJumpRandomize(holdingJumpRandomizerCancellationTokenSource.ResetToken());
+                SetForce(new Vector2(direction, 1) * jumpForce, 2f, true, () => isGrounded || (rigidBody.linearVelocityX == 0));
+            }
+
+            return 0;
+        }
+        else
+        {
+            float deltaY = targetMovePosition.y - groundCheck.position.y;
+            if (Mathf.Abs(deltaY).IsBetween(minimumWantToJumpTolerance, maximumWantToJumpTolerance))
+            {
+                if (wantToJumpFillChecker.PushFill(Time.deltaTime))
+                {
+                    ProcessHoldingJumpRandomize(holdingJumpRandomizerCancellationTokenSource.ResetToken());
+                    SetForce(new Vector2(direction, 1) * jumpForce, 2f, true, () => isGrounded || (rigidBody.linearVelocityX == 0));
+                }
+            }
+            else
+            {
+                wantToJumpFillChecker.ReduceFill(Time.deltaTime);
+            }
+        }
+
         return direction;
+    }
+
+    protected RaycastHit2D GetRaycastHit2DOnFrontGround(float horizontalDistance, float downDistance, int maximumIteration)
+    {
+        float currentDistance = 0 + horizontalDistance;
+        for (int i = 0; i < maximumIteration; i++)
+        {
+            Vector2 origin = new(groundCheck.position.x + currentDistance, groundCheck.position.y);
+            RaycastHit2D raycastHit2D = Physics2D.Raycast(origin, Vector2.down, downDistance, LayerMaskManager.Instance.groundableLayer);
+            if (raycastHit2D.collider != null)
+            {
+                return raycastHit2D;
+            }
+            currentDistance += horizontalDistance;
+        }
+
+        return new();
+    }
+
+    protected bool TryGetPlayerPosition()
+    {
+        RaycastHit2D raycastHit2D = Physics2D.CircleCast(groundCheck.position, playerDetection, Vector2.zero, 0, LayerMaskManager.Instance.playerMask);
+        if (raycastHit2D.collider != null && raycastHit2D.collider.TryGetComponent(out playerController))
+        {
+            targetMovePosition = playerController.transform.position;
+            return true;
+        }
+        return false;
+    }
+
+    protected Vector2 GetSamplePositionByGameMode()
+    {
+        return GameManager.Instance.currentGameModeType switch
+        {
+            GameModeType.Normal => throw new System.NotImplementedException(),
+            GameModeType.Rogue => RogueManager.Instance.GetSampleSpawnPosition(),
+            _ => throw new System.NotImplementedException(),
+        };
     }
 
     public void OnTakeTrampoline()
@@ -127,6 +215,19 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         }
     }
 
+    private async void ProcessHoldingJumpRandomize(CancellationToken cancellationToken)
+    {
+        holdingJump = true;
+
+        await UniTask.Yield();
+
+
+        float randomWaitingTime = Random.Range(0.5f, 1f);
+        await UniTaskExtensions.DelayWithCancel(randomWaitingTime, cancellationToken);
+
+        holdingJump = false;
+    }
+
     public override async void OnZeroHealth()
     {
         CancellationToken cancellationToken = alphaCancellationTokenSource.ResetToken();
@@ -140,6 +241,26 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
     #region Target Lock State
 
+    private void TargetLockUpdate()
+    {
+        isGrounded = CheckGrounded();
+        ApplyBetterJump();
+
+        UpdateMoveAnimation();
+        UpdateJumpAnimation(isGrounded);
+    }
+
+    private void TargetLockFixedUpdate()
+    {
+        ValidateMove();
+        if (playerController != null && Vector2.Distance(groundCheck.position, playerController.transform.position) < playerDetection)
+        {
+            isWantToMoving = true;
+            targetMovePosition = playerController.transform.position;
+            return;
+        }
+        enemyStateMachine.SetState(EnemyStateType.Scouting);
+    }
     public class TargetLockState : BaseState<EnemyController>
     {
         public TargetLockState(EnemyController component) : base(component)
@@ -152,7 +273,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
         public override void FixedUpdateState()
         {
-            component.ScoutingFixedUpdate();
+            component.TargetLockUpdate();
         }
 
         public override void LeaveState()
@@ -161,7 +282,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
         public override void UpdateState()
         {
-            component.ScoutingUpdate();
+            component.TargetLockFixedUpdate();
         }
     }
 
@@ -169,9 +290,32 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
     #region Scouting State
 
+    private void ScoutingEnter()
+    {
+        isWantToMoving = true;
+        targetMovePosition = GetSamplePositionByGameMode();
+    }
+
     private void ScoutingUpdate()
     {
         isGrounded = CheckGrounded();
+        ApplyBetterJump();
+
+        UpdateMoveAnimation();
+        UpdateJumpAnimation(isGrounded);
+
+        if (TryGetPlayerPosition())
+        {
+            enemyStateMachine.SetState(EnemyStateType.TargetLock);
+            return;
+        }
+
+        if (interestTimeChecker.IsDurationEnd())
+        {
+            enemyStateMachine.SetState(EnemyStateType.Scouting);
+            float randomizeInterestDuration = Random.Range(minimumInterestDuration, maximumInterestDuration);
+            interestTimeChecker.UpdateTime(randomizeInterestDuration);
+        }
     }
 
     private void ScoutingFixedUpdate()
@@ -187,6 +331,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
         public override void EnterState()
         {
+            component.ScoutingEnter();
         }
 
         public override void FixedUpdateState()

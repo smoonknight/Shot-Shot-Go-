@@ -27,6 +27,16 @@ public class RogueManager : Singleton<RogueManager>
 
     public Vector3 GetSampleSpawnPosition() => GetSampleTilemapController().GetRandomPointInSpawnAreas();
 
+    public Vector3 GetSampleSpawnPosition(Vector2 targetPosition)
+    {
+        var closest = currentEnvironmentProperty.allowedTilemapControllers
+            .FindAll(match => match.IsSpawnAreasExist)
+            .OrderBy(t => Vector2.Distance(t.transform.position, targetPosition))
+            .FirstOrDefault();
+
+        return closest != null ? closest.transform.position : targetPosition;
+    }
+
     const float minimumEnvironmentChangeDuration = 15;
     const float maximumEnvironmentChangeDuration = 30;
 

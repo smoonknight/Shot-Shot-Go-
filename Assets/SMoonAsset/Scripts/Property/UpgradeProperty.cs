@@ -7,7 +7,7 @@ using UnityEngine;
 public class UpgradeProperty
 {
     public float size;
-    public float moveSpeed;
+    public float attackInterval;
     public float speed;
     public int health;
     public int damage;
@@ -15,9 +15,8 @@ public class UpgradeProperty
     public int exp;
 
     const float sizeMultiplierRate = 0.1f;
-    const float moveSpeedMultiplierRate = 0.2f;
-    const float speedMultiplierRate = 0.15f;
-    const float healthMultiplierRate = 1.25f;
+    const float speedMultiplierRate = 0.25f;
+    const float healthMultiplierRate = 3.5f;
     const float damageMultiplierRate = 1.1f;
     const float jumpMultiplierRate = 0.05f;
     const float expMultiplierRate = 1.5f;
@@ -25,7 +24,7 @@ public class UpgradeProperty
     public UpgradeProperty Copy() => new()
     {
         size = size,
-        moveSpeed = moveSpeed,
+        attackInterval = attackInterval,
         speed = speed,
         health = health,
         damage = damage,
@@ -35,13 +34,13 @@ public class UpgradeProperty
 
     public void Multiplier(float value)
     {
-        size *= value * sizeMultiplierRate;
-        moveSpeed *= value * moveSpeedMultiplierRate;
-        speed *= value * speedMultiplierRate;
-        health = Mathf.CeilToInt(health * value * healthMultiplierRate);
-        damage = Mathf.CeilToInt(damage * value * damageMultiplierRate);
-        jump *= value * jumpMultiplierRate;
+        size += value * sizeMultiplierRate;
+        speed += value * speedMultiplierRate;
+        health = Mathf.CeilToInt(health + (value * healthMultiplierRate));
+        damage = Mathf.CeilToInt(damage + (value * damageMultiplierRate));
+        jump += value * jumpMultiplierRate;
         exp = Mathf.CeilToInt(exp * value * expMultiplierRate);
+        Debug.Log(speed);
     }
 }
 

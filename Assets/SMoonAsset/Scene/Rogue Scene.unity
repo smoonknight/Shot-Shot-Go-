@@ -5737,6 +5737,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5263312074681046054, guid: acb12785e6947a54792d1f5fb796194d, type: 3}
+      propertyPath: initialMagicSwordProperties.Array.data[0].amount
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 6584453570898085290, guid: acb12785e6947a54792d1f5fb796194d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -8436,6 +8440,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnAreas:
   - {fileID: 1694209047}
+  - {fileID: 1286839242}
+  - {fileID: 1962399273}
+  - {fileID: 579680731}
   tilemap: {fileID: 0}
   tilemapRenderer: {fileID: 0}
   tilemapCollider2D: {fileID: 0}

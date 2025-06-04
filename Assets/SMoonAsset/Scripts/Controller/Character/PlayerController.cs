@@ -131,7 +131,7 @@ public class PlayerController : PlayableCharacterControllerBase
         if (input.Fire && attackIntervalTimeChecker.IsDurationEnd())
         {
             Fire();
-            attackIntervalTimeChecker.UpdateTime(characterUpgradeProperty.speed);
+            attackIntervalTimeChecker.UpdateTime(characterUpgradeProperty.attackInterval);
         }
     }
 
