@@ -19,7 +19,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     private bool holdingJump;
     private bool isWantToMoving;
 
-    public override StatProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultEnemyCharacterUpgradeProperty(type).upgradeProperty;
+    public override StatProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultEnemyCharacterUpgradeProperty(type).statProperty;
 
     public bool IsDamaging() => true;
 

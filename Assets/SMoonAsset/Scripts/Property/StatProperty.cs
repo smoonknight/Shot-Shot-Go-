@@ -47,12 +47,12 @@ public class StatProperty
 public class TypeStatProperty<T> where T : Enum
 {
     public T type;
-    public StatProperty upgradeProperty;
+    public StatProperty statProperty;
 
     public TypeStatProperty<T> Copy() => new()
     {
         type = type,
-        upgradeProperty = upgradeProperty.Copy()
+        statProperty = statProperty.Copy()
     };
 }
 

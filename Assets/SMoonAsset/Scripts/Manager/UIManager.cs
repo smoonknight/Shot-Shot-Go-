@@ -98,7 +98,7 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
-    public async UniTask StartChooseUpgrade(List<PlayerUpgradePlanPorperty> playerUpgradePlanPorperties, bool startImmidietly, bool endImmidietly)
+    public async UniTask StartChooseUpgrade(PlayerController playerController, List<PlayerUpgradePlanPorperty> playerUpgradePlanPorperties, bool startImmidietly, bool endImmidietly)
     {
         chooseUpgradeSpawner.HideSpawn();
         bool isSelected = false;
@@ -120,16 +120,16 @@ public class UIManager : Singleton<UIManager>
             string titleText = LanguageManager.Instance.GetAddressableStringId(playerUpgradePlanPorperty.type).ToCommonLanguage();
             UpgradeStat upgradeStat = playerUpgradePlanPorperty.upgradeStats.GetRandom();
             string descriptionText = upgradeStat.type.ToString();
-            imageButtonView.Initialize(sprite, titleText, descriptionText, () => OnChooseItem(chooseUpgradeImageButtonViews, imageButtonView, playerUpgradePlanPorperty.type, upgradeStat, ref isSelected, endImmidietly));
+            imageButtonView.Initialize(sprite, titleText, descriptionText, () => OnChooseItem(playerController, chooseUpgradeImageButtonViews, imageButtonView, playerUpgradePlanPorperty.type, upgradeStat, ref isSelected, endImmidietly));
         }
 
         await UniTask.WaitUntil(() => isSelected);
         characterUpgradeCanvas.enabled = false;
     }
 
-    private void OnChooseItem(List<ImageButtonView> chooseUpgradeImageButtonViews, ImageButtonView selectedImageButtonView, UpgradeType upgradeType, UpgradeStat upgradeStat, ref bool isSelected, bool endImmidietly)
+    private void OnChooseItem(PlayerController playerController, List<ImageButtonView> chooseUpgradeImageButtonViews, ImageButtonView selectedImageButtonView, UpgradeType upgradeType, UpgradeStat upgradeStat, ref bool isSelected, bool endImmidietly)
     {
-
+        playerController.UpgradeStatProperty(upgradeType, upgradeStat);
         isSelected = true;
     }
 

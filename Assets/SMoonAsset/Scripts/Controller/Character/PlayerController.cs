@@ -152,7 +152,7 @@ public class PlayerController : PlayableCharacterControllerBase
             var list = listOfPlayerUpgradePlanPorperties[0];
             listOfPlayerUpgradePlanPorperties.RemoveAt(0);
 
-            await UIManager.Instance.StartChooseUpgrade(list, hasStart, listOfPlayerUpgradePlanPorperties.Count != 0);
+            await UIManager.Instance.StartChooseUpgrade(this, list, hasStart, listOfPlayerUpgradePlanPorperties.Count != 0);
             hasStart = true;
         }
 

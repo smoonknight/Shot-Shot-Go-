@@ -139,19 +139,19 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         switch (upgradeStat.type)
         {
             case UpgradeStatType.size:
-                magicSwordItemTypeStatProperty.upgradeProperty.size += upgradeStat.value;
+                magicSwordItemTypeStatProperty.statProperty.size += upgradeStat.value;
                 break;
             case UpgradeStatType.attackInterval:
-                magicSwordItemTypeStatProperty.upgradeProperty.attackInterval += upgradeStat.value;
+                magicSwordItemTypeStatProperty.statProperty.attackInterval += upgradeStat.value;
                 break;
             case UpgradeStatType.speed:
-                magicSwordItemTypeStatProperty.upgradeProperty.speed += upgradeStat.value;
+                magicSwordItemTypeStatProperty.statProperty.speed += upgradeStat.value;
                 break;
             case UpgradeStatType.damage:
-                magicSwordItemTypeStatProperty.upgradeProperty.damage += Mathf.RoundToInt(upgradeStat.value);
+                magicSwordItemTypeStatProperty.statProperty.damage += Mathf.RoundToInt(upgradeStat.value);
                 break;
             case UpgradeStatType.jump:
-                magicSwordItemTypeStatProperty.upgradeProperty.jump += upgradeStat.value;
+                magicSwordItemTypeStatProperty.statProperty.jump += upgradeStat.value;
                 break;
             case UpgradeStatType.quantity:
                 for (int i = 0; i < upgradeStat.value; i++)
@@ -187,7 +187,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     public void AddMagicSword(MagicSwordItemController magicSword)
     {
-        magicSword.Initialize(this, IsPlayer(), transform.position, magicSwordTypeStatPropertyCollector.GetStatProperty(magicSword.itemBase.type).upgradeProperty);
+        magicSword.Initialize(this, IsPlayer(), transform.position, magicSwordTypeStatPropertyCollector.GetStatProperty(magicSword.itemBase.type).statProperty);
         magicSwordItemControllers.Add(magicSword);
     }
 

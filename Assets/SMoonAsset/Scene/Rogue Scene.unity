@@ -6558,11 +6558,17 @@ MonoBehaviour:
     - type: 1
       value: -0.05
   - type: 1
-    upgradeStats: []
+    upgradeStats:
+    - type: 6
+      value: 1
   - type: 2
-    upgradeStats: []
+    upgradeStats:
+    - type: 6
+      value: 1
   - type: 3
-    upgradeStats: []
+    upgradeStats:
+    - type: 6
+      value: 1
 --- !u!1 &522479963
 GameObject:
   m_ObjectHideFlags: 0
