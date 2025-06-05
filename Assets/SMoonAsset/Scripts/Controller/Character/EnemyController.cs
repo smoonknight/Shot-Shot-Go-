@@ -11,6 +11,11 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
     public EnemyStateMachine enemyStateMachine;
 
+    [SerializeField]
+    private float sideDetectionRange = 1f;
+    [SerializeField]
+    private float verticalToleranceForAttacking = 0.3f;
+
     private bool holdingJump;
     private bool isWantToMoving;
 
@@ -35,6 +40,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     const float maximumInterestDuration = 15;
 
     FMinMaxRandomizer wantToJumpRandomizer = new(1, 2);
+    FMinMaxRandomizer wantToShotRandomizer = new(5, 10);
 
     private Vector3 targetMovePosition;
     private FillChecker wantToJumpFillChecker;
@@ -44,6 +50,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
     TimeChecker trampolineTakeDamageTimeChecker = new(trampolineTakeDamageCooldownDuration, false);
     TimeChecker interestTimeChecker = new();
+    TimeChecker wantToShotTimeChecker = new();
 
     private PlayerController playerController;
 
@@ -119,7 +126,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
                 ProcessHoldingJumpRandomize(holdingJumpRandomizerCancellationTokenSource.ResetToken());
                 SetForce(new Vector2(direction, 1) * jumpForce, 3f, true, () => isGrounded || rigidBody.linearVelocityX == 0);
             }
-            return 0;
+            return isEdge ? 0 : direction;
         }
 
         wantToJumpFillChecker.ReduceFill(Time.deltaTime);
@@ -144,10 +151,35 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         return new();
     }
 
+    protected void CloseAttack()
+    {
+        Vector2 targetCenter = playerController.ColliderCenter;
+        Vector2 center = ColliderCenter;
+
+        float horizontalDistance = Mathf.Abs(center.x - targetCenter.x);
+        float verticalDistance = Mathf.Abs(center.y - targetCenter.y);
+
+        bool isBeside = horizontalDistance <= sideDetectionRange && verticalDistance <= verticalToleranceForAttacking;
+
+        if (isBeside)
+        {
+            playerController.ValidateTakeDamage(characterStatProperty.damage, groundCheck.position);
+        }
+    }
+
+    private void WantToShoot()
+    {
+        if (wantToShotTimeChecker.IsDurationEnd())
+        {
+            Fire();
+            wantToShotTimeChecker.UpdateTime(wantToJumpRandomizer.GetRandomize());
+        }
+    }
+
     protected bool TryGetPlayerPosition()
     {
         RaycastHit2D raycastHit2D = Physics2D.CircleCast(groundCheck.position, playerDetection, Vector2.zero, 0, LayerMaskManager.Instance.playerMask);
-        if (raycastHit2D.collider != null && raycastHit2D.collider.TryGetComponent(out playerController))
+        if (raycastHit2D.collider != null && raycastHit2D.collider.TryGetComponent(out playerController) && !playerController.IsDead)
         {
             targetMovePosition = playerController.transform.position;
             return true;
@@ -157,7 +189,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
     protected Vector2 GetSamplePositionByGameMode()
     {
-        return GameManager.Instance.currentGameModeType switch
+        return GameplayManager.Instance.currentGameModeType switch
         {
             GameModeType.Normal => throw new System.NotImplementedException(),
             GameModeType.Rogue => RogueManager.Instance.GetSampleSpawnPosition(),
@@ -227,14 +259,24 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     {
         CancellationToken cancellationToken = alphaCancellationTokenSource.ResetToken();
         await LerpGeneric(1f, 0f, 0.5f, Mathf.Lerp, AlphaChange, cancellationToken);
+        GameplayManager.Instance.DropCollectable(this);
         gameObject.SetActive(false);
     }
 
-    public override bool IsPlayer() => true;
+    public override bool IsPlayer() => false;
     public override bool HoldingJump() => holdingJump;
     public override bool CheckOutOfBound() => true;
 
+    public override void OnSetCharacterStatProperty(StatProperty upgradeProperty)
+    {
+    }
+
     #region Target Lock State
+
+    private void TargetLockEnter()
+    {
+        wantToShotTimeChecker.UpdateTime(wantToShotRandomizer.GetRandomize());
+    }
 
     private void TargetLockUpdate()
     {
@@ -243,11 +285,14 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
         UpdateMoveAnimation();
         UpdateJumpAnimation(isGrounded);
+
+        CloseAttack();
     }
 
     private void TargetLockFixedUpdate()
     {
         ValidateMove();
+        WantToShoot();
         if (playerController != null && Vector2.Distance(groundCheck.position, playerController.transform.position) < playerDetection)
         {
             isWantToMoving = true;
@@ -264,6 +309,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
         public override void EnterState()
         {
+            component.TargetLockEnter();
         }
 
         public override void FixedUpdateState()
@@ -372,5 +418,5 @@ public enum EnemyStateType
 
 public enum EnemyType
 {
-    Trired
+    Trired, Twored, OneRed
 }

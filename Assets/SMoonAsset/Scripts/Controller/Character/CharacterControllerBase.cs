@@ -44,6 +44,13 @@ public abstract class CharacterControllerBase : MonoBehaviour
     [SerializeField]
     protected float wallJumpForce = 8;
 
+    [Header("Collider")]
+    [SerializeField]
+    protected Collider2D characterCollider;
+
+    public Vector2 ColliderCenter => characterCollider.bounds.center;
+    public float HalfHeight => characterCollider.bounds.size.y / 2f;
+
     protected List<SpriteRenderer> spriteRenderers = new();
 
     float currentVelocityX;
@@ -55,6 +62,8 @@ public abstract class CharacterControllerBase : MonoBehaviour
 
     int jumpHash;
     int wallHangHash;
+
+    int isDeadHash;
 
 
     float lastMoveSmooth;
@@ -70,7 +79,7 @@ public abstract class CharacterControllerBase : MonoBehaviour
     [ReadOnly]
     protected bool enableDoubleJump;
 
-    protected bool isDead;
+    public bool IsDead { protected set; get; }
 
     protected const float inertiaRate = 5f;
     const float accelerationSmoothRate = 0.1f;
@@ -101,12 +110,14 @@ public abstract class CharacterControllerBase : MonoBehaviour
         jumpHash = Animator.StringToHash("Jump");
         wallHangHash = Animator.StringToHash("Wall Hang");
 
+        isDeadHash = Animator.StringToHash("Is Dead");
+
         spriteRenderers = TransformHelper.GetComponentsRecursively<SpriteRenderer>(transform);
     }
 
     protected void ValidateMove()
     {
-        if (!enableMove || isDead)
+        if (!enableMove || IsDead)
         {
             return;
         }
@@ -290,6 +301,11 @@ public abstract class CharacterControllerBase : MonoBehaviour
     protected void UpdateWallHangAnimation(bool isWallHang)
     {
         animator.SetBool(isWallHangHash, isWallHang);
+    }
+
+    protected void UpdateDeadAnimation(bool isDead)
+    {
+        animator.SetBool(isDeadHash, isDead);
     }
 
     protected void UpdateAnimation(int isConditionHash, int isValueHash, ref float smoothValue, float targetValue, bool condition)

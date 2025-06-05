@@ -15,7 +15,7 @@ namespace CartoonFX
                 {
                     return;
                 }
-            SessionState.SetBool("CFXR_WelcomeScreen_Shown", true);
+                SessionState.SetBool("CFXR_WelcomeScreen_Shown", true);
 
                 var importer = AssetImporter.GetAtPath(AssetDatabase.GUIDToAssetPath("bfd03f272fe010b4ba558a3bc456ffeb"));
                 if (importer != null && importer.userData == "dontshow")
@@ -49,9 +49,13 @@ namespace CartoonFX
 
             // Background image
             root.style.backgroundImage = new StyleBackground(AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath("fed1b64fd853f994c8d504720a0a6d44")));
+#pragma warning disable CS0618 // Type or member is obsolete
+
             root.style.unityBackgroundScaleMode = ScaleMode.ScaleAndCrop;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // Logo image
+
             var titleImage = root.Q<Image>("img_title");
             titleImage.image = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath("a665b2e53088caa4c89dd09f9c889f62"));
 

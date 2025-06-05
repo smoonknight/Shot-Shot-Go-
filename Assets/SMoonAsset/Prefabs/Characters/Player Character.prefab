@@ -31,6 +31,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6584453570898085290}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5047862525195898488
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2069568712027983694}
+  m_Layer: 20
+  m_Name: Magnetic Body
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2069568712027983694
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5047862525195898488}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.64, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6584453570898085290}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &110433856547169518
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -313,11 +344,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6550761235523395908, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -25.329784
       objectReference: {fileID: 0}
     - target: {fileID: 6550761235523395908, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 21.497608
       objectReference: {fileID: 0}
     - target: {fileID: 6550761235523395908, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
       propertyPath: m_LocalPosition.z
@@ -445,6 +476,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6550761235523395908, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7300771384673855963}
+    - targetCorrespondingSourceObject: {fileID: 6550761235523395908, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2069568712027983694}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 6550761235523395909, guid: 3f455c34b1c30534891c2bc1c23411e6, type: 3}
       insertIndex: -1
@@ -610,19 +644,26 @@ MonoBehaviour:
   animator: {fileID: 6584453570898085285}
   wallCheckDistance: 0.5
   wallJumpForce: 8
+  characterCollider: {fileID: 1286914668917100803}
   isFacingRight: 1
   enableMove: 1
   enableDoubleJump: 0
   initialMagicSwordProperties:
   - type: 0
-    amount: 5
-  characterUpgradeProperty:
+    amount: 1
+  characterStatProperty:
     size: 0
-    moveSpeed: 0
+    attackInterval: 0
     speed: 0
     health: 0
     damage: 0
     jump: 0
     exp: 0
-  magicSwordTypeUpgradePropertyCollector:
+  magicSwordTypeStatPropertyCollector:
     typeUpgradeProperties: []
+  experienceStat:
+    exp: 0
+    startLevel: 1
+    maximumLevel: 99
+    factor: 50
+  magneticBody: {fileID: 2069568712027983694}

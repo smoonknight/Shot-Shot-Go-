@@ -54,7 +54,7 @@ public class RogueManager : Singleton<RogueManager>
 
         latestLevelEnemyProperty = GetLevelEnemyProperty(rogueExperienceStat.Level);
         nextSpawnChecker = new(latestLevelEnemyProperty.nextEnemySpawnDuration, false);
-
+        levelEnemyProperties.ForEach(levelEnemyProperty => levelEnemyProperty.enemyTypeRateCollector.Calculate());
         EnvironmentAwake();
     }
 
@@ -162,7 +162,6 @@ public class RogueManager : Singleton<RogueManager>
     private void AddExperience(int exp)
     {
         rogueExperienceStat.AddExperience(exp, out bool isLevelUp, out currentLevel, out _);
-        Debug.Log(currentLevel);
         if (isLevelUp)
             latestLevelEnemyProperty = GetLevelEnemyProperty(currentLevel);
     }

@@ -21,6 +21,7 @@ public class Input : MonoBehaviour
     public InputAction JumpAction { private set; get; }
     public InputAction CrouchAction { private set; get; }
     public InputAction InteractAction { private set; get; }
+    public InputAction SwitchCursorAction { private set; get; }
 
     private void OnEnable()
     {
@@ -37,7 +38,7 @@ public class Input : MonoBehaviour
 
     private void Awake()
     {
-        HideCursor();
+        GameManager.Instance.SetCursor(false);
         _currentMap = playerInput.currentActionMap;
         MoveAction = _currentMap.FindAction("Move");
         FireAction = _currentMap.FindAction("Fire");
@@ -45,6 +46,7 @@ public class Input : MonoBehaviour
         JumpAction = _currentMap.FindAction("Jump");
         CrouchAction = _currentMap.FindAction("Crouch");
         InteractAction = _currentMap.FindAction("Interact");
+        SwitchCursorAction = _currentMap.FindAction("Switch Cursor");
 
         MoveAction.performed += OnMove;
         FireAction.performed += OnFire;
@@ -57,12 +59,13 @@ public class Input : MonoBehaviour
         RunAction.canceled += OnRun;
         JumpAction.canceled += OnJump;
         CrouchAction.canceled += OnCrouch;
+
+        SwitchCursorAction.performed += SwitchCursor;
     }
 
-    private void HideCursor()
+    private void SwitchCursor(InputAction.CallbackContext context)
     {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        GameManager.Instance.SetCursor(!Cursor.visible);
     }
 
     private void OnMove(InputAction.CallbackContext context)

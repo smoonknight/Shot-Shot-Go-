@@ -16,6 +16,10 @@ PrefabInstance:
       propertyPath: m_Interpolate
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3132415589336571326, guid: 8769ac83215845e4aaaa1f8fa14261da, type: 3}
+      propertyPath: characterCollider
+      value: 
+      objectReference: {fileID: 7141464684658351595}
     - target: {fileID: 3769145826285922117, guid: 8769ac83215845e4aaaa1f8fa14261da, type: 3}
       propertyPath: m_LocalPosition.y
       value: -0.9

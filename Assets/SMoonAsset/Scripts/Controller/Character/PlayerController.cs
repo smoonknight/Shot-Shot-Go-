@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using SMoonUniversalAsset;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -5,11 +8,22 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Input))]
 public class PlayerController : PlayableCharacterControllerBase
 {
+    private float attackInterval;
+    public ExperienceStat experienceStat;
+
+    public Transform magneticBody;
+
     private Input input;
 
     private PlayerStateMachine playerStateMachine;
 
     private TimeChecker attackIntervalTimeChecker = new();
+
+    private List<List<PlayerUpgradePlanPorperty>> listOfPlayerUpgradePlanPorperties = new();
+
+    private bool isExecuteUpgradeStat;
+
+    Collider2D[] colliders = new Collider2D[100];
 
     bool isWallHanging;
 
@@ -83,15 +97,96 @@ public class PlayerController : PlayableCharacterControllerBase
         return false;
     }
 
+    private void MagneticCollectable()
+    {
+
+        ContactFilter2D filter = new()
+        {
+            useTriggers = true,
+            useLayerMask = true,
+            layerMask = LayerMaskManager.Instance.collectableMask
+        };
+
+        int count = Physics2D.OverlapCircle(magneticBody.position, characterStatProperty.size, filter, colliders);
+        if (count == 0)
+        {
+            return;
+        }
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D collider = colliders[i];
+            if (collider.TryGetComponent(out IMagneticable component))
+            {
+                component.Attraction(magneticBody.position);
+                if (Vector2.Distance(component.MagneticSource().position, magneticBody.position) < 0.5f)
+                {
+                    component.OnMagneticClose(this);
+                }
+            }
+        }
+    }
+
+    public void AddExperience(int experience)
+    {
+        experienceStat.AddExperience(experience, out bool isLevelUp, out int currentLevel, out int LevelUpCount);
+        if (isLevelUp)
+        {
+            var upgrades = GameplayManager.Instance.GetUpgradeStatsRandomly(LevelUpCount);
+            listOfPlayerUpgradePlanPorperties.AddRange(upgrades);
+            if (!isExecuteUpgradeStat)
+            {
+                isExecuteUpgradeStat = true;
+                ExecuteUpgradeStat();
+            }
+        }
+    }
+
+    public async void ExecuteUpgradeStat()
+    {
+        Time.timeScale = 0;
+        GameManager.Instance.SetCursor(true);
+
+        bool hasStart = false;
+        while (listOfPlayerUpgradePlanPorperties.Count > 0)
+        {
+            var list = listOfPlayerUpgradePlanPorperties[0];
+            listOfPlayerUpgradePlanPorperties.RemoveAt(0);
+
+            await UIManager.Instance.StartChooseUpgrade(list, hasStart, listOfPlayerUpgradePlanPorperties.Count != 0);
+            hasStart = true;
+        }
+
+        Time.timeScale = 1;
+        GameManager.Instance.SetCursor(false);
+
+        isExecuteUpgradeStat = false;
+    }
+
+    public void AddHealth(int health)
+    {
+        Health = Mathf.Clamp(Health + health, 0, MaximumHealth);
+        UIManager.Instance.SetHealth(this);
+    }
+
+
     public override void OnZeroHealth()
     {
-        GameManager.Instance.RaiseGameOver();
+        playerStateMachine.SetStateWhenDifference(PlayerStateType.Dead);
     }
 
     public override void TakeDamage(int damage)
     {
         base.TakeDamage(damage);
-        UIManager.Instance.SetHealth(Heart);
+        SetImmune(2);
+        UIManager.Instance.SetHealth(this);
+        ProcessAlphaChangePingPong(1, 0.5f, 1, 0.25f, 4);
+    }
+
+    public override void TakeDamage(int damage, Vector2 sourcePosition)
+    {
+        TakeDamage(damage);
+        Vector2 impactForce = new(transform.position.x < sourcePosition.x ? -1 : 1, 1);
+        SetForce(impactForce * 5, 0.5f, true);
     }
 
     protected override float GetMoveTargetDirectionX() => input.Move.x;
@@ -99,6 +194,66 @@ public class PlayerController : PlayableCharacterControllerBase
     public override bool HoldingJump() => input.Jump;
     public override StatProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultCharacterUpgradeProperty();
     public override bool CheckOutOfBound() => true;
+    #region Dead State
+
+    private const float waitingToGameOverDuration = 2;
+    TimeChecker waitingToGameOverTimeChecker = new();
+
+    bool hasRaiseGameOver;
+
+    private void DeadEnter()
+    {
+        rigidBody.linearVelocity = Vector2.zero;
+        hasRaiseGameOver = false;
+        waitingToGameOverTimeChecker.UpdateTime(waitingToGameOverDuration);
+
+        UpdateDeadAnimation(true);
+    }
+
+    private void DeadFixedUpdate()
+    {
+        if (hasRaiseGameOver || !waitingToGameOverTimeChecker.IsDurationEnd())
+        {
+            return;
+        }
+
+        hasRaiseGameOver = true;
+        GameManager.Instance.RaiseGameOver();
+    }
+
+    private void DeadLeave()
+    {
+        UpdateDeadAnimation(false);
+    }
+
+    public class DeadState : BaseState<PlayerController>
+    {
+        public DeadState(PlayerController component) : base(component)
+        {
+        }
+
+        public override void EnterState()
+        {
+            component.DeadEnter();
+        }
+
+        public override void FixedUpdateState()
+        {
+            component.DeadFixedUpdate();
+        }
+
+        public override void LeaveState()
+        {
+            component.DeadLeave();
+        }
+
+        public override void UpdateState()
+        {
+
+        }
+    }
+
+    #endregion
 
     #region Play State
     private void PlayStateEnter()
@@ -136,10 +291,12 @@ public class PlayerController : PlayableCharacterControllerBase
         UpdateJumpAnimation(isGrounded);
         UpdateWallHangAnimation(isWallHanging);
 
+        MagneticCollectable();
+
         if (input.Fire && attackIntervalTimeChecker.IsDurationEnd())
         {
             Fire();
-            attackIntervalTimeChecker.UpdateTime(characterStatProperty.attackInterval);
+            attackIntervalTimeChecker.UpdateTime(attackInterval);
         }
     }
 
@@ -147,6 +304,11 @@ public class PlayerController : PlayableCharacterControllerBase
     {
         ValidateMove();
         rigidBody.constraints = isWallHanging ? RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation : RigidbodyConstraints2D.FreezeRotation;
+    }
+
+    public override void OnSetCharacterStatProperty(StatProperty upgradeProperty)
+    {
+        attackInterval = Mathf.Max(upgradeProperty.attackInterval, 0.1f);
     }
 
     public class PlayState : BaseState<PlayerController>
@@ -203,20 +365,22 @@ public class PlayerController : PlayableCharacterControllerBase
 
     public class PlayerStateMachine : EnumStateMachine<PlayerController, PlayerStateType>
     {
-
         private CutsceneState cutsceneState;
         private PlayState playState;
+        private DeadState deadState;
 
         protected override void InitializeState(PlayerController playerController)
         {
             cutsceneState = new(playerController);
             playState = new(playerController);
+            deadState = new(playerController);
         }
 
         protected override BaseState<PlayerController> GetState(PlayerStateType type) => type switch
         {
             PlayerStateType.Cutscene => cutsceneState,
             PlayerStateType.Play => playState,
+            PlayerStateType.Dead => deadState,
             _ => throw new System.NotImplementedException(),
         };
     }
@@ -225,5 +389,6 @@ public class PlayerController : PlayableCharacterControllerBase
 
 public enum PlayerStateType
 {
-    Cutscene, Play
+    Cutscene, Play,
+    Dead
 }

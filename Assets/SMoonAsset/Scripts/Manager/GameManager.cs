@@ -1,12 +1,17 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using SMoonUniversalAsset;
 using UnityEngine;
 
-public class GameManager : SingletonWithDontDestroyOnLoad<GameManager>
+public partial class GameManager : SingletonWithDontDestroyOnLoad<GameManager>
 {
-    public GameModeType currentGameModeType;
     public DefaultDataScriptableObject defaultItem;
+
+    protected override void OnAwake()
+    {
+        base.OnAwake();
+        LanguageManager.Instance.SetLanguages(LanguageType.Indonesia);
+    }
 
     public DefaultItem<MagicSwordItem> GetDefaultItem(MagicSwordItemType type) => defaultItem.magicSwordDefaultItems.Find(match => match.itemBase.type == type);
     public Sprite GetDefaultItemSprite(MagicSwordItemType type) => GetDefaultItem(type).sprite;
@@ -14,17 +19,7 @@ public class GameManager : SingletonWithDontDestroyOnLoad<GameManager>
     public StatProperty GetCopyOfDefaultCharacterUpgradeProperty() => defaultItem.defaultCharacterStatProperty.Copy();
     public List<TypeStatProperty<MagicSwordItemType>> GetCopyOfDefaultMagicSwordTypeUpgradeProperties() => defaultItem.defaultMagicSwordItemTypeStatPropertyCollector.GetCopyOfTypeUpgradeProperties().ToList();
 
-    public TypeStatProperty<EnemyType> GetCopyOfDefaultEnemyCharacterUpgradeProperty(EnemyType type) => defaultItem.enemyTypeStatPropertyCollector.GetUpgradeProperty(type).Copy();
-
-    public Vector3 GetOutOfBoundByGameMode()
-    {
-        return currentGameModeType switch
-        {
-            GameModeType.Normal => LevelManager.Instance.latestCheckpoint,
-            GameModeType.Rogue => RogueManager.Instance.GetSampleSpawnPosition(),
-            _ => throw new NotImplementedException(),
-        };
-    }
+    public TypeStatProperty<EnemyType> GetCopyOfDefaultEnemyCharacterUpgradeProperty(EnemyType type) => defaultItem.enemyTypeStatPropertyCollector.GetStatProperty(type).Copy();
 
     public void RaiseGameOver()
     {

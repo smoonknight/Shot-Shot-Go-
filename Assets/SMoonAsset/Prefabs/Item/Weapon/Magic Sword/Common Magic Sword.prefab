@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6072095833730467608}
   - component: {fileID: 2770990330248749319}
   m_Layer: 0
-  m_Name: Sword1
+  m_Name: Sword Sprite Renderer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

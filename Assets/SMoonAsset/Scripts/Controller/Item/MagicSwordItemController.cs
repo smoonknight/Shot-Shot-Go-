@@ -14,6 +14,9 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 {
     private BoxCollider2D boxCollider2D;
     private Rigidbody2D rigidBody2D;
+
+    MagicSwordStateMachine magicSwordStateMachine;
+
     const float detectionRange = 15;
     const float travelRange = 30;
     const float inertiaRate = 10;
@@ -25,14 +28,16 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
     UnityAction onAttackingTask;
 
+    bool startDetectTarget;
+
     IDamageable damageable;
-    HashSet<IDamageable> alreadyDamaged = new();
+    readonly HashSet<IDamageable> alreadyDamaged = new();
 
     static readonly Collider2D[] colliderBuffer = new Collider2D[16];
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (ValidateTriggerEnter2D(collision))
+        if (ValidateTriggerEnter2D(collision) && startDetectTarget)
         {
             collision.TryGetComponent(out damageable);
         }
@@ -47,6 +52,9 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         boxCollider2D = GetComponent<BoxCollider2D>();
         rigidBody2D = GetComponent<Rigidbody2D>();
         boxCollider2D.isTrigger = true;
+
+        magicSwordStateMachine = new();
+        magicSwordStateMachine.Initialize(this, MagicSwordStateType.Active);
     }
 
     void OnDisable()
@@ -56,7 +64,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
     private void Update()
     {
-        if (master == null)
+        if (master == null || !master.gameObject.activeInHierarchy)
         {
             Disable();
             return;
@@ -67,10 +75,13 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
             return;
         }
 
-        float inertiaValue = inertiaRate * Time.deltaTime;
-        Vector3 targetPosition = GetStandPosition();
-        transform.SetPositionAndRotation(Vector3.Lerp(transform.position, targetPosition, inertiaValue),
-            Quaternion.Lerp(transform.rotation, standRotation, inertiaValue));
+        magicSwordStateMachine.CurrentState.UpdateState();
+    }
+
+    public void Reinitialize(MagicSwordItem itemBase)
+    {
+        SetItemBase(itemBase);
+        magicSwordStateMachine.SetState(MagicSwordStateType.Active);
     }
 
     public override void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition, StatProperty upgradeProperty)
@@ -108,10 +119,9 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         onAttackingTask.Invoke();
     }
 
-
     public Collider2D GetNearestTarget(Vector2 origin, float radius, LayerMask targetMask)
     {
-        ContactFilter2D filter = new ContactFilter2D
+        ContactFilter2D filter = new()
         {
             useTriggers = true,
             useLayerMask = true,
@@ -148,7 +158,6 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
         if (collider == null)
         {
-            OnMasterDirection();
             return;
         }
 
@@ -190,9 +199,9 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
     private async UniTask TravelToTarget(Vector3 targetPosition, CancellationToken cancellationToken, bool oneTimeDealDamage, UnityAction onTravelFinish = null)
     {
+        startDetectTarget = true;
         float totalTravel = 0f;
         float time = 0;
-
         Vector3 direction = (targetPosition - transform.position).normalized;
         Quaternion targetRotation = Quaternion.LookRotation(Vector3.forward, direction);
         transform.rotation = targetRotation;
@@ -203,13 +212,14 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         {
             if (cancellationToken.IsCancellationRequested)
             {
+                startDetectTarget = false;
                 return;
             }
-            if (oneTimeDealDamage && TryDealDamageToTarget(damageable))
+            if (oneTimeDealDamage && TryDealDamageToTarget(damageable, false))
                 break;
 
             Vector2 oldPosition = transform.position;
-            Vector2 moveVector = upgradeProperty.speed * Time.deltaTime * (Vector2)transform.up;
+            Vector2 moveVector = statProperty.speed * Time.deltaTime * (Vector2)transform.up;
             Vector2 newPosition = oldPosition + moveVector;
 
             totalTravel += moveVector.magnitude;
@@ -232,6 +242,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         Vector3 targetPosition = target.transform.position;
         float time = 0f;
         bool slashingAttack = false;
+        startDetectTarget = false;
 
         bool isMasterFacingRight = playableCharacter.isFacingRight;
 
@@ -243,7 +254,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
                 return;
 
             Vector3 currentPosition = transform.position;
-            Vector2 newPosition = Vector2.MoveTowards(currentPosition, targetPosition, upgradeProperty.speed * Time.deltaTime);
+            Vector2 newPosition = Vector2.MoveTowards(currentPosition, targetPosition, statProperty.speed * Time.deltaTime);
 
             totalTravel += Vector2.Distance(currentPosition, newPosition);
             if (totalTravel >= detectionRange || Vector2.Distance(newPosition, targetPosition) < 0.5f)
@@ -271,7 +282,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
                 return;
 
             float percentage = time / scaleDuration;
-            Vector3 scaleLerp = Vector3.Lerp(Vector3.one, Vector3.one * 4, percentage);
+            Vector3 scaleLerp = Vector3.Lerp(Vector3.one, Vector3.one * statProperty.size, percentage);
             transform.localScale = scaleLerp;
             time += Time.deltaTime;
             await UniTask.Yield();
@@ -281,19 +292,25 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         time = 0f;
         float targetAngle = isMasterFacingRight ? -360 : 360;
 
+        startDetectTarget = true;
         ResetAlreadyDamaged();
+
         while (time < slashingDuration)
         {
             if (cancellationToken.IsCancellationRequested)
+            {
+                startDetectTarget = false;
                 return;
-
-            TryDealDamageToTarget(damageable);
+            }
+            TryDealDamageToTarget(damageable, true);
 
             float angle = Mathf.Lerp(0f, targetAngle, time / slashingDuration);
             transform.rotation = Quaternion.Euler(0, 0, angle);
             time += Time.deltaTime;
             await UniTask.Yield();
         }
+
+        startDetectTarget = false;
 
         await UniTaskExtensions.DelayWithCancel(0.5f, cancellationToken);
     }
@@ -302,15 +319,122 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
     {
         alreadyDamaged.Clear();
     }
-    private bool TryDealDamageToTarget(IDamageable damageable)
+    private bool TryDealDamageToTarget(IDamageable damageable, bool addImpact)
     {
         if (damageable != null && damageable.EnableTakeDamage() && !alreadyDamaged.Contains(damageable))
         {
-            damageable.TakeDamage(upgradeProperty.damage);
+            if (addImpact)
+                damageable.TakeDamage(statProperty.damage, transform.position);
+            else
+                damageable.TakeDamage(statProperty.damage);
+
             alreadyDamaged.Add(damageable);
             return true;
         }
 
         return false;
     }
+
+    #region Deactive State
+    private void DeactiveEnter()
+    {
+        rigidBody2D.bodyType = RigidbodyType2D.Dynamic;
+        boxCollider2D.isTrigger = false;
+    }
+
+    public class DeactiveState : BaseState<MagicSwordItemController>
+    {
+        public DeactiveState(MagicSwordItemController component) : base(component)
+        {
+        }
+
+        public override void EnterState()
+        {
+            component.DeactiveEnter();
+        }
+
+        public override void FixedUpdateState()
+        {
+        }
+
+        public override void LeaveState()
+        {
+        }
+
+        public override void UpdateState()
+        {
+        }
+    }
+    #endregion
+
+    #region Active State
+    private void ActiveEnter()
+    {
+        rigidBody2D.bodyType = RigidbodyType2D.Static;
+        boxCollider2D.isTrigger = true;
+    }
+
+    private void ActiveUpdate()
+    {
+        if (playableCharacter.IsDead)
+        {
+            magicSwordStateMachine.SetStateWhenDifference(MagicSwordStateType.Deactive);
+            return;
+        }
+
+        float inertiaValue = inertiaRate * Time.deltaTime;
+        Vector3 targetPosition = GetStandPosition();
+        transform.SetPositionAndRotation(Vector3.Lerp(transform.position, targetPosition, inertiaValue),
+            Quaternion.Lerp(transform.rotation, standRotation, inertiaValue));
+    }
+
+    public class ActiveState : BaseState<MagicSwordItemController>
+    {
+        public ActiveState(MagicSwordItemController component) : base(component)
+        {
+        }
+
+        public override void EnterState()
+        {
+            component.ActiveEnter();
+        }
+
+        public override void FixedUpdateState()
+        {
+        }
+
+        public override void LeaveState()
+        {
+        }
+
+        public override void UpdateState()
+        {
+            component.ActiveUpdate();
+        }
+    }
+    #endregion
+
+    public class MagicSwordStateMachine : EnumStateMachine<MagicSwordItemController, MagicSwordStateType>
+    {
+        ActiveState activeState;
+        DeactiveState deactiveState;
+        protected override void InitializeState(MagicSwordItemController component)
+        {
+            activeState = new(component);
+            deactiveState = new(component);
+        }
+
+        protected override BaseState<MagicSwordItemController> GetState(MagicSwordStateType type) => type switch
+        {
+            MagicSwordStateType.Active => activeState,
+            MagicSwordStateType.Deactive => deactiveState,
+            _ => throw new NotImplementedException(),
+        };
+    }
+}
+
+public enum MagicSwordStateType
+{
+    Active,
+    Deactive
 }

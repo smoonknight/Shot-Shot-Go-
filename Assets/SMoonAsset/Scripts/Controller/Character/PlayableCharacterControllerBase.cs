@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using SMoonUniversalAsset;
 using UnityEngine;
+using UnityEngine.Events;
 
 public abstract class PlayableCharacterControllerBase : CharacterControllerBase, IDamageable, IOutOfBoundable
 {
@@ -23,16 +25,16 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     protected bool isGrounded;
     protected float coyoteCounter;
     protected float jumpBufferCounter;
+    protected bool isImmuneDamage;
 
     protected bool isProcessTrampoline;
 
     const int HeartRate = 10;
 
-    public int Health { get; private set; }
+    public int Health { get; protected set; }
     public int MaximumHealth => characterStatProperty.health;
 
-    public int Heart => Health / HeartRate;
-    public int MaximumHeart => MaximumHealth / HeartRate;
+    private CancellationTokenSource immuneCancellationTokenSource;
 
     protected override void Awake()
     {
@@ -46,6 +48,12 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         isProcessTrampoline = false;
     }
 
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        immuneCancellationTokenSource?.Cancel();
+    }
+
     public void SetInitial()
     {
         initialScale = transform.localScale;
@@ -53,25 +61,106 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     public virtual void SetupPlayable()
     {
-        isDead = false;
+        IsDead = false;
         ColorChange(Color.white);
         AlphaChange(1);
         magicSwordTypeStatPropertyCollector.SetTypeUpgradeProperties(GameManager.Instance.GetCopyOfDefaultMagicSwordTypeUpgradeProperties());
-        SetCharacterUpgradeProperty(GetCharacterUpgradeProperty());
+        SetCharacterStatProperty(GetCharacterUpgradeProperty());
         SetupInitialMagicSwordProperties();
     }
 
-    void SetCharacterUpgradeProperty(StatProperty upgradeProperty)
+    void SetCharacterStatProperty(StatProperty upgradeProperty)
     {
         characterStatProperty = upgradeProperty;
         jumpForce = upgradeProperty.jump;
         moveSpeed = upgradeProperty.speed;
         Health = upgradeProperty.health;
+        OnSetCharacterStatProperty(upgradeProperty);
     }
 
-    void UpgradeStatProperty()
+    public void UpgradeStatProperty(UpgradeType upgradeType, UpgradeStat upgradeStat)
     {
+        switch (upgradeType)
+        {
+            case UpgradeType.Character:
+                UpgradeCharacterStatProperty(upgradeStat);
+                break;
+            case UpgradeType.MagicSword_Common:
+            case UpgradeType.MagicSword_OnTarget:
+            case UpgradeType.MagicSword_Slashing:
+                UpgradeWeaponStatPorperty(upgradeType, upgradeStat);
+                break;
+            default: throw new NotImplementedException();
+        }
+    }
 
+    void UpgradeCharacterStatProperty(UpgradeStat upgradeStat)
+    {
+        switch (upgradeStat.type)
+        {
+            case UpgradeStatType.size:
+                characterStatProperty.size += upgradeStat.value;
+                break;
+            case UpgradeStatType.attackInterval:
+                characterStatProperty.attackInterval += upgradeStat.value;
+                break;
+            case UpgradeStatType.speed:
+                characterStatProperty.speed += upgradeStat.value;
+                break;
+            case UpgradeStatType.health:
+                characterStatProperty.health += Mathf.RoundToInt(upgradeStat.value);
+                break;
+            case UpgradeStatType.damage:
+                characterStatProperty.damage += Mathf.RoundToInt(upgradeStat.value);
+                break;
+            case UpgradeStatType.jump:
+                characterStatProperty.jump += upgradeStat.value;
+                break;
+        }
+
+        SetCharacterStatProperty(characterStatProperty);
+    }
+
+    void UpgradeWeaponStatPorperty(UpgradeType upgradeType, UpgradeStat upgradeStat)
+    {
+        MagicSwordItemType type = upgradeType switch
+        {
+            UpgradeType.MagicSword_Common => MagicSwordItemType.Common,
+            UpgradeType.MagicSword_OnTarget => MagicSwordItemType.OnTarget,
+            UpgradeType.MagicSword_Slashing => MagicSwordItemType.Slashing,
+            _ => throw new NotImplementedException(),
+        };
+
+        UpgradeMagicSwordItemTypeProperty(magicSwordTypeStatPropertyCollector.GetStatProperty(type), upgradeStat);
+    }
+
+    void UpgradeMagicSwordItemTypeProperty(TypeStatProperty<MagicSwordItemType> magicSwordItemTypeStatProperty, UpgradeStat upgradeStat)
+    {
+        switch (upgradeStat.type)
+        {
+            case UpgradeStatType.size:
+                magicSwordItemTypeStatProperty.upgradeProperty.size += upgradeStat.value;
+                break;
+            case UpgradeStatType.attackInterval:
+                magicSwordItemTypeStatProperty.upgradeProperty.attackInterval += upgradeStat.value;
+                break;
+            case UpgradeStatType.speed:
+                magicSwordItemTypeStatProperty.upgradeProperty.speed += upgradeStat.value;
+                break;
+            case UpgradeStatType.damage:
+                magicSwordItemTypeStatProperty.upgradeProperty.damage += Mathf.RoundToInt(upgradeStat.value);
+                break;
+            case UpgradeStatType.jump:
+                magicSwordItemTypeStatProperty.upgradeProperty.jump += upgradeStat.value;
+                break;
+            case UpgradeStatType.quantity:
+                for (int i = 0; i < upgradeStat.value; i++)
+                {
+                    var magicSword = MagicSwordSpawnerManager.Instance.GetSpawned(magicSwordItemTypeStatProperty.type);
+                    AddMagicSword(magicSword);
+                }
+                break;
+        }
     }
 
     void SetupInitialMagicSwordProperties()
@@ -80,7 +169,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         {
             if (magicSwordItemController != null)
             {
-                Destroy(magicSwordItemController.gameObject);
+                magicSwordItemController.gameObject.SetActive(false);
             }
         });
         magicSwordItemControllers.Clear();
@@ -98,7 +187,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     public void AddMagicSword(MagicSwordItemController magicSword)
     {
-        magicSword.Initialize(this, IsPlayer(), transform.position, magicSwordTypeStatPropertyCollector.GetUpgradeProperty(magicSword.itemBase.type).upgradeProperty);
+        magicSword.Initialize(this, IsPlayer(), transform.position, magicSwordTypeStatPropertyCollector.GetStatProperty(magicSword.itemBase.type).upgradeProperty);
         magicSwordItemControllers.Add(magicSword);
     }
 
@@ -180,24 +269,65 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     public void ModifierUpgradeProperty(float multiplier)
     {
         characterStatProperty.Multiplier(multiplier);
-        SetCharacterUpgradeProperty(characterStatProperty);
+        SetCharacterStatProperty(characterStatProperty);
     }
 
-    public virtual bool EnableTakeDamage() => !isDead;
+    protected async void SetImmune(float duration, UnityAction onImmuneUpdateAction = null)
+    {
+        CancellationToken cancellationToken = immuneCancellationTokenSource.ResetToken();
+
+        isImmuneDamage = true;
+        await UniTask.Yield();
+
+        float time = 0;
+        while (time < duration)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                break;
+
+            onImmuneUpdateAction?.Invoke();
+            time += Time.deltaTime;
+            await UniTask.Yield();
+        }
+
+        isImmuneDamage = false;
+    }
+
+    public virtual bool EnableTakeDamage() => !IsDead && !isImmuneDamage;
     public virtual void TakeDamage(int damage)
     {
         Health -= damage;
-        if (Health <= 0 && !isDead)
+        if (Health <= 0 && !IsDead)
         {
-            isDead = true;
+            IsDead = true;
             OnZeroHealth();
+        }
+    }
+    public virtual void TakeDamage(int damage, Vector2 sourcePosition)
+    {
+        TakeDamage(damage);
+    }
+
+    public void ValidateTakeDamage(int damage)
+    {
+        if (EnableTakeDamage())
+        {
+            TakeDamage(damage);
+        }
+    }
+
+    public void ValidateTakeDamage(int damage, Vector2 sourcePosition)
+    {
+        if (EnableTakeDamage())
+        {
+            TakeDamage(damage, sourcePosition);
         }
     }
 
     public virtual void OutOfBoundChangeLocation()
     {
         TakeDamage(10);
-        Vector3 location = GameManager.Instance.GetOutOfBoundByGameMode();
+        Vector3 location = GameplayManager.Instance.GetOutOfBoundByGameMode();
         transform.position = location;
         rigidBody.linearVelocity = Vector3.zero;
     }
@@ -207,6 +337,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     public abstract void OnZeroHealth();
     public abstract StatProperty GetCharacterUpgradeProperty();
     public abstract bool CheckOutOfBound();
+    public abstract void OnSetCharacterStatProperty(StatProperty upgradeProperty);
 }
 
 [System.Serializable]

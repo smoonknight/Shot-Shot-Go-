@@ -8,20 +8,20 @@ public abstract class WeaponItemController<T> : ItemController<T> where T : Item
     protected PlayableCharacterControllerBase playableCharacter;
     protected Transform master;
     protected bool isPlayerAsMaster;
-    protected StatProperty upgradeProperty;
+    protected StatProperty statProperty;
 
     protected CancellationTokenSource attackingCancellationTokenSource;
 
     protected LayerMask targetMask;
 
-    public virtual void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition, StatProperty upgradeProperty)
+    public virtual void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition, StatProperty statProperty)
     {
         playableCharacter = playableCharacterControllerBase;
         master = playableCharacterControllerBase.transform;
         transform.position = initialPosition;
         this.isPlayerAsMaster = isPlayerAsMaster;
         targetMask = isPlayerAsMaster ? LayerMaskManager.Instance.enemyMask : LayerMaskManager.Instance.playerMask;
-        this.upgradeProperty = upgradeProperty;
+        this.statProperty = statProperty;
     }
 
     private void OnEnable()

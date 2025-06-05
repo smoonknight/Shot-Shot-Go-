@@ -44,6 +44,12 @@ public class ButtonView : TextViewBase, IPointerEnterHandler, IPointerExitHandle
         Initialize(buttonAction);
     }
 
+    public void Initialize(string text, string secondaryText, UnityAction buttonAction)
+    {
+        Initialize(text, buttonAction);
+        SetSecondaryText(secondaryText);
+    }
+
     public void Initialize(UnityAction buttonAction)
     {
         action = buttonAction;

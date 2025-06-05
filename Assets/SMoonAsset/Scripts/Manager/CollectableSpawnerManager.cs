@@ -2,13 +2,13 @@ using System;
 using SMoonUniversalAsset;
 using UnityEngine;
 
-public class CollectableSpawnerManager : SpawnerManager<CollectableSpawner, CollectableController, CollectableType>
+public class CollectableSpawnerManager : MultiSpawnerManager<CollectableSpawner, CollectableController, CollectableType>
 {
 
 }
 
 [System.Serializable]
-public class CollectableSpawner : SpawnerBase<CollectableController, CollectableType>
+public class CollectableSpawner : MultiSpawnerBase<CollectableController, CollectableType>
 {
     public override void OnSpawn(CollectableController component, CollectableType type, Func<Vector3> onSetDeactiveOnDurationUpdate = null)
     {
@@ -18,5 +18,5 @@ public class CollectableSpawner : SpawnerBase<CollectableController, Collectable
 
 public enum CollectableType
 {
-    Coin
+    Coin, Heart
 }

@@ -11,15 +11,11 @@ namespace SMoonUniversalAsset
     {
         public LanguageData commonLanguageData;
         public LanguageData conversationLanguageData;
-        public LanguageData messageLanguageData;
-        public LanguageData specialNameLanguageData;
 
         public LanguageType currentLanguage { get; private set; }
 
         public Dictionary<StringId, string> commonDictionary = new();
         public List<string> conversationDictionary = new();
-        public List<string> messageDictionary = new();
-        public Dictionary<int, string> specialNameDictionary = new();
 
         [SerializeField]
         [TextArea]
@@ -34,8 +30,6 @@ namespace SMoonUniversalAsset
 
         public void SetLanguages(LanguageType type)
         {
-            // DEBUG ONLY
-            type = LanguageType.Indonesia;
             currentLanguage = type;
 
             commonDictionary.Clear();
@@ -48,14 +42,8 @@ namespace SMoonUniversalAsset
                 commonDictionary.Add((StringId)stringIds[i], commonList[i]);
             }
 
-            string specialNameLanguage = GetTextAsset(type, specialNameLanguageData).text;
-            specialNameDictionary = JsonConvert.DeserializeObject<Dictionary<int, string>>(specialNameLanguage);
-
             string conversationJson = GetTextAsset(type, conversationLanguageData).text;
             conversationDictionary = JsonConvert.DeserializeObject<List<string>>(conversationJson);
-
-            string messageJson = GetTextAsset(type, messageLanguageData).text;
-            messageDictionary = JsonConvert.DeserializeObject<List<string>>(messageJson);
 
             TextMeshProUGUIOnTranslateBase[] TextMeshProUGUIOnTranslateBases = FindObjectsByType<TextMeshProUGUIOnTranslateBase>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
@@ -83,11 +71,6 @@ namespace SMoonUniversalAsset
         public string GetDictionaryTextReplactorOfConversation(int index, params object[] args)
         {
             return GetTextReplactor(conversationDictionary[index]);
-        }
-
-        public string GetDictionaryTextReplactorOfMessage(int index, params object[] args)
-        {
-            return GetTextReplactor(messageDictionary[index]);
         }
 
         public string GetTextReplactor(string text, params object[] args)
@@ -151,6 +134,15 @@ namespace SMoonUniversalAsset
         //         _ => throw new IndexOutOfRangeException(questStringId + " not found!")
         //     };
         // }
+
+        public StringId GetAddressableStringId(UpgradeType upgradeType) => upgradeType switch
+        {
+            UpgradeType.Character => StringId.UpgradeTypeCharacter,
+            UpgradeType.MagicSword_Common => StringId.UpgradeTypeMagicSword_Common,
+            UpgradeType.MagicSword_OnTarget => StringId.UpgradeTypeMagicSword_OnTarget,
+            UpgradeType.MagicSword_Slashing => StringId.UpgradeTypeMagicSword_Slashing,
+            _ => throw new NotImplementedException(),
+        };
     }
 
     public static class LanguageHelper

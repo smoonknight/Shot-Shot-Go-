@@ -8,6 +8,7 @@ namespace SMoonUniversalAsset
         public static CancellationToken ResetToken(this CancellationTokenSource cancellationTokenSource)
         {
             cancellationTokenSource?.Cancel();
+            cancellationTokenSource?.Dispose();
             cancellationTokenSource = new();
             return cancellationTokenSource.Token;
         }
