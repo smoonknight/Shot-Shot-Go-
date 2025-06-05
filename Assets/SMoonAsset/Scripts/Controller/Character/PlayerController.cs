@@ -20,6 +20,8 @@ public class PlayerController : PlayableCharacterControllerBase
 
         playerStateMachine = new();
         playerStateMachine.Initialize(this, PlayerStateType.Play);
+
+        UIManager.Instance.InitializePlayer(this);
     }
 
     protected override void OnEnable()
@@ -86,10 +88,16 @@ public class PlayerController : PlayableCharacterControllerBase
         GameManager.Instance.RaiseGameOver();
     }
 
+    public override void TakeDamage(int damage)
+    {
+        base.TakeDamage(damage);
+        UIManager.Instance.SetHealth(Heart);
+    }
+
     protected override float GetMoveTargetDirectionX() => input.Move.x;
     public override bool IsPlayer() => true;
     public override bool HoldingJump() => input.Jump;
-    public override UpgradeProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultCharacterUpgradeProperty();
+    public override StatProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultCharacterUpgradeProperty();
     public override bool CheckOutOfBound() => true;
 
     #region Play State
@@ -131,7 +139,7 @@ public class PlayerController : PlayableCharacterControllerBase
         if (input.Fire && attackIntervalTimeChecker.IsDurationEnd())
         {
             Fire();
-            attackIntervalTimeChecker.UpdateTime(characterUpgradeProperty.attackInterval);
+            attackIntervalTimeChecker.UpdateTime(characterStatProperty.attackInterval);
         }
     }
 

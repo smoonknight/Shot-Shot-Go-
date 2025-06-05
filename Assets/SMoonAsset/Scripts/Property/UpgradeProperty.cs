@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 
 [Serializable]
-public class UpgradeProperty
+public class StatProperty
 {
     public float size;
     public float attackInterval;
@@ -21,7 +21,7 @@ public class UpgradeProperty
     const float jumpMultiplierRate = 0.05f;
     const float expMultiplierRate = 1.5f;
 
-    public UpgradeProperty Copy() => new()
+    public StatProperty Copy() => new()
     {
         size = size,
         attackInterval = attackInterval,
@@ -40,17 +40,16 @@ public class UpgradeProperty
         damage = Mathf.CeilToInt(damage + (value * damageMultiplierRate));
         jump += value * jumpMultiplierRate;
         exp = Mathf.CeilToInt(exp * value * expMultiplierRate);
-        Debug.Log(speed);
     }
 }
 
 [Serializable]
-public class TypeUpgradeProperty<T> where T : Enum
+public class TypeStatProperty<T> where T : Enum
 {
     public T type;
-    public UpgradeProperty upgradeProperty;
+    public StatProperty upgradeProperty;
 
-    public TypeUpgradeProperty<T> Copy() => new()
+    public TypeStatProperty<T> Copy() => new()
     {
         type = type,
         upgradeProperty = upgradeProperty.Copy()
@@ -58,11 +57,11 @@ public class TypeUpgradeProperty<T> where T : Enum
 }
 
 [Serializable]
-public class TypeUpgradePropertyCollector<T> where T : Enum
+public class TypeStatPropertyCollector<T> where T : Enum
 {
-    public List<TypeUpgradeProperty<T>> typeUpgradeProperties;
-    public TypeUpgradeProperty<T> GetUpgradeProperty(T type) => typeUpgradeProperties.Find(weaponUpgradeProperty => weaponUpgradeProperty.type.Equals(type));
-    public IEnumerable<TypeUpgradeProperty<T>> GetCopyOfTypeUpgradeProperties() => typeUpgradeProperties.Select(typeUpgradeProperty => typeUpgradeProperty.Copy());
+    public List<TypeStatProperty<T>> typeUpgradeProperties;
+    public TypeStatProperty<T> GetUpgradeProperty(T type) => typeUpgradeProperties.Find(weaponUpgradeProperty => weaponUpgradeProperty.type.Equals(type));
+    public IEnumerable<TypeStatProperty<T>> GetCopyOfTypeUpgradeProperties() => typeUpgradeProperties.Select(typeUpgradeProperty => typeUpgradeProperty.Copy());
 
-    public void SetTypeUpgradeProperties(List<TypeUpgradeProperty<T>> typeUpgradeProperties) => this.typeUpgradeProperties = typeUpgradeProperties;
+    public void SetTypeUpgradeProperties(List<TypeStatProperty<T>> typeUpgradeProperties) => this.typeUpgradeProperties = typeUpgradeProperties;
 }

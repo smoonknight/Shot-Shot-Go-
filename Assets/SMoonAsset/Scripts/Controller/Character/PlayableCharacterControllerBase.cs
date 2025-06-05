@@ -11,9 +11,9 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     private List<InitialMagicSwordProperty> initialMagicSwordProperties;
     [ReadOnly]
     [SerializeField]
-    protected UpgradeProperty characterUpgradeProperty;
+    protected StatProperty characterStatProperty;
     [SerializeField]
-    protected TypeUpgradePropertyCollector<MagicSwordItemType> magicSwordTypeUpgradePropertyCollector;
+    protected TypeStatPropertyCollector<MagicSwordItemType> magicSwordTypeStatPropertyCollector;
 
     [ReadOnly]
     protected List<MagicSwordItemController> magicSwordItemControllers = new();
@@ -25,6 +25,14 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     protected float jumpBufferCounter;
 
     protected bool isProcessTrampoline;
+
+    const int HeartRate = 10;
+
+    public int Health { get; private set; }
+    public int MaximumHealth => characterStatProperty.health;
+
+    public int Heart => Health / HeartRate;
+    public int MaximumHeart => MaximumHealth / HeartRate;
 
     protected override void Awake()
     {
@@ -48,16 +56,22 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         isDead = false;
         ColorChange(Color.white);
         AlphaChange(1);
-        magicSwordTypeUpgradePropertyCollector.SetTypeUpgradeProperties(GameManager.Instance.GetCopyOfDefaultMagicSwordTypeUpgradeProperties());
-        UpdateCharacterUpgrade(GetCharacterUpgradeProperty());
+        magicSwordTypeStatPropertyCollector.SetTypeUpgradeProperties(GameManager.Instance.GetCopyOfDefaultMagicSwordTypeUpgradeProperties());
+        SetCharacterUpgradeProperty(GetCharacterUpgradeProperty());
         SetupInitialMagicSwordProperties();
     }
 
-    void UpdateCharacterUpgrade(UpgradeProperty upgradeProperty)
+    void SetCharacterUpgradeProperty(StatProperty upgradeProperty)
     {
-        characterUpgradeProperty = upgradeProperty;
+        characterStatProperty = upgradeProperty;
         jumpForce = upgradeProperty.jump;
         moveSpeed = upgradeProperty.speed;
+        Health = upgradeProperty.health;
+    }
+
+    void UpgradeStatProperty()
+    {
+
     }
 
     void SetupInitialMagicSwordProperties()
@@ -84,7 +98,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     public void AddMagicSword(MagicSwordItemController magicSword)
     {
-        magicSword.Initialize(this, IsPlayer(), transform.position, magicSwordTypeUpgradePropertyCollector.GetUpgradeProperty(magicSword.itemBase.type).upgradeProperty);
+        magicSword.Initialize(this, IsPlayer(), transform.position, magicSwordTypeStatPropertyCollector.GetUpgradeProperty(magicSword.itemBase.type).upgradeProperty);
         magicSwordItemControllers.Add(magicSword);
     }
 
@@ -125,7 +139,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         await UniTask.WaitUntil(() => rigidBody.linearVelocity.y < 0);
         await UniTask.WaitUntil(() => isGrounded);
 
-        jumpForce = characterUpgradeProperty.jump;
+        jumpForce = characterStatProperty.jump;
         isProcessTrampoline = false;
     }
 
@@ -143,7 +157,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
             Trampoline(component.JumpValue());
             if (component.IsDamaging())
             {
-                component.TrampolineTakeDamage(characterUpgradeProperty.damage);
+                component.TrampolineTakeDamage(characterStatProperty.damage);
             }
         }
         return hit.collider != null;
@@ -165,15 +179,15 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     public void ModifierUpgradeProperty(float multiplier)
     {
-        characterUpgradeProperty.Multiplier(multiplier);
-        UpdateCharacterUpgrade(characterUpgradeProperty);
+        characterStatProperty.Multiplier(multiplier);
+        SetCharacterUpgradeProperty(characterStatProperty);
     }
 
     public virtual bool EnableTakeDamage() => !isDead;
     public virtual void TakeDamage(int damage)
     {
-        characterUpgradeProperty.health -= damage;
-        if (characterUpgradeProperty.health <= 0 && !isDead)
+        Health -= damage;
+        if (Health <= 0 && !isDead)
         {
             isDead = true;
             OnZeroHealth();
@@ -191,7 +205,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     public abstract bool IsPlayer();
     public abstract bool HoldingJump();
     public abstract void OnZeroHealth();
-    public abstract UpgradeProperty GetCharacterUpgradeProperty();
+    public abstract StatProperty GetCharacterUpgradeProperty();
     public abstract bool CheckOutOfBound();
 }
 

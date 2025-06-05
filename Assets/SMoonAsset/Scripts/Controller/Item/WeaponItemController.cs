@@ -8,13 +8,13 @@ public abstract class WeaponItemController<T> : ItemController<T> where T : Item
     protected PlayableCharacterControllerBase playableCharacter;
     protected Transform master;
     protected bool isPlayerAsMaster;
-    protected UpgradeProperty upgradeProperty;
+    protected StatProperty upgradeProperty;
 
     protected CancellationTokenSource attackingCancellationTokenSource;
 
     protected LayerMask targetMask;
 
-    public virtual void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition, UpgradeProperty upgradeProperty)
+    public virtual void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition, StatProperty upgradeProperty)
     {
         playableCharacter = playableCharacterControllerBase;
         master = playableCharacterControllerBase.transform;

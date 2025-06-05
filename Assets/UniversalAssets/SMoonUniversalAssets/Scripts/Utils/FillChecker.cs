@@ -12,7 +12,7 @@ public class FillChecker
     }
     public FillChecker(float fillRequired, bool isFill = false)
     {
-        this.fillRequired = fillRequired;
+        SetFill(fillRequired);
         if (isFill == true)
         {
             fillAmount = fillRequired;
@@ -21,7 +21,10 @@ public class FillChecker
 
     public float fillAmount = 0;
     public float fillRequired;
-
+    public void SetFill(float fillRequired)
+    {
+        this.fillRequired = fillRequired;
+    }
     public void ResetFill() => fillAmount = 0;
     public void ReduceFill(float amount) => ChangeFill(-amount);
     public void AddFill() => AddFill(1);

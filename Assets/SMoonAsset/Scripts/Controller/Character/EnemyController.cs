@@ -14,7 +14,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     private bool holdingJump;
     private bool isWantToMoving;
 
-    public override UpgradeProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultEnemyCharacterUpgradeProperty(type).upgradeProperty;
+    public override StatProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultEnemyCharacterUpgradeProperty(type).upgradeProperty;
 
     public bool IsDamaging() => true;
 
@@ -23,15 +23,21 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     const float squashingDuration = 0.15f;
     const float waitingNormalAfterSquasedDuration = 0.75f;
     const float normalAfterSquasedDuration = 0.10f;
+
     const float trampolineTakeDamageCooldownDuration = 0.1f;
+
     const float minimumWantToJumpTolerance = 3;
     const float maximumWantToJumpTolerance = 6;
+
     const float playerDetection = 15;
+
     const float minimumInterestDuration = 5;
     const float maximumInterestDuration = 15;
 
+    FMinMaxRandomizer wantToJumpRandomizer = new(1, 2);
+
     private Vector3 targetMovePosition;
-    private FillChecker wantToJumpFillChecker = new(1);
+    private FillChecker wantToJumpFillChecker;
 
     CancellationTokenSource squashCancellationTokenSource;
     CancellationTokenSource holdingJumpRandomizerCancellationTokenSource;
@@ -44,6 +50,9 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     protected override void Awake()
     {
         base.Awake();
+
+        wantToJumpFillChecker = new(wantToJumpRandomizer.GetRandomize());
+
         enemyStateMachine = new();
         enemyStateMachine.Initialize(this, EnemyStateType.Scouting);
     }
@@ -87,11 +96,9 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     protected override float GetMoveTargetDirectionX()
     {
         if (!isWantToMoving)
-        {
             return 0;
-        }
-        float deltaX = targetMovePosition.x - groundCheck.position.x;
 
+        float deltaX = targetMovePosition.x - groundCheck.position.x;
         if (Mathf.Abs(deltaX) < 0.1f)
         {
             isWantToMoving = false;
@@ -99,38 +106,26 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         }
 
         int direction = deltaX > 0 ? 1 : -1;
+        float deltaY = targetMovePosition.y - groundCheck.position.y;
+        bool shouldJump = Mathf.Abs(deltaY).IsBetween(minimumWantToJumpTolerance, maximumWantToJumpTolerance);
 
-        RaycastHit2D groundHit = GetRaycastHit2DOnFrontGround(direction, groundRadius, 1);
+        bool isEdge = isGrounded && !GetRaycastHit2DOnFrontGround(direction, groundRadius, 1);
 
-        if (isGrounded && !groundHit)
+        if (isEdge || shouldJump)
         {
             if (wantToJumpFillChecker.PushFill(Time.deltaTime))
             {
+                wantToJumpFillChecker.SetFill(wantToJumpRandomizer.GetRandomize());
                 ProcessHoldingJumpRandomize(holdingJumpRandomizerCancellationTokenSource.ResetToken());
-                SetForce(new Vector2(direction, 1) * jumpForce, 2f, true, () => isGrounded || (rigidBody.linearVelocityX == 0));
+                SetForce(new Vector2(direction, 1) * jumpForce, 3f, true, () => isGrounded || rigidBody.linearVelocityX == 0);
             }
-
             return 0;
         }
-        else
-        {
-            float deltaY = targetMovePosition.y - groundCheck.position.y;
-            if (Mathf.Abs(deltaY).IsBetween(minimumWantToJumpTolerance, maximumWantToJumpTolerance))
-            {
-                if (wantToJumpFillChecker.PushFill(Time.deltaTime))
-                {
-                    ProcessHoldingJumpRandomize(holdingJumpRandomizerCancellationTokenSource.ResetToken());
-                    SetForce(new Vector2(direction, 1) * jumpForce, 2f, true, () => isGrounded || (rigidBody.linearVelocityX == 0));
-                }
-            }
-            else
-            {
-                wantToJumpFillChecker.ReduceFill(Time.deltaTime);
-            }
-        }
 
+        wantToJumpFillChecker.ReduceFill(Time.deltaTime);
         return direction;
     }
+
 
     protected RaycastHit2D GetRaycastHit2DOnFrontGround(float horizontalDistance, float downDistance, int maximumIteration)
     {

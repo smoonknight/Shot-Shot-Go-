@@ -5,9 +5,9 @@ using UnityEngine;
 public class DefaultDataScriptableObject : ScriptableObject
 {
     public List<DefaultItem<MagicSwordItem>> magicSwordDefaultItems;
-    public UpgradeProperty defaultCharacterUpgradeProperty;
-    public TypeUpgradePropertyCollector<MagicSwordItemType> defaultMagicSwordItemTypeUpgradePropertyCollector;
-    public TypeUpgradePropertyCollector<EnemyType> enemyTypeUpgradePropertyCollector;
+    public StatProperty defaultCharacterStatProperty;
+    public TypeStatPropertyCollector<MagicSwordItemType> defaultMagicSwordItemTypeStatPropertyCollector;
+    public TypeStatPropertyCollector<EnemyType> enemyTypeStatPropertyCollector;
 }
 
 [System.Serializable]

@@ -73,7 +73,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
             Quaternion.Lerp(transform.rotation, standRotation, inertiaValue));
     }
 
-    public override void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition, UpgradeProperty upgradeProperty)
+    public override void Initialize(PlayableCharacterControllerBase playableCharacterControllerBase, bool isPlayerAsMaster, Vector3 initialPosition, StatProperty upgradeProperty)
     {
         base.Initialize(playableCharacterControllerBase, isPlayerAsMaster, initialPosition, upgradeProperty);
         RandomizeStandPosition();
