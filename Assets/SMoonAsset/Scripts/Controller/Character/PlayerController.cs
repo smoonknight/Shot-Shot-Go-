@@ -13,6 +13,8 @@ public class PlayerController : PlayableCharacterControllerBase
 
     public Transform magneticBody;
 
+    [SerializeField]
+    private AudioClip deadAudioClip;
     private Input input;
 
     private PlayerStateMachine playerStateMachine;
@@ -74,6 +76,7 @@ public class PlayerController : PlayableCharacterControllerBase
     {
         Vector2 direction = new(isFacingRight ? -1f : 1f, 1f);
         SetForce(direction * wallJumpForce, 2f, true, () => isGrounded || (Mathf.Abs(rigidBody.linearVelocityX) < 0.05f && !isWallHanging));
+        JumpAudio();
     }
 
     private void ValidateDoubleJump()
@@ -82,7 +85,7 @@ public class PlayerController : PlayableCharacterControllerBase
         {
             return;
         }
-        ParticleSpawnerManager.Instance.GetSpawned(ParticleType.ImpactGroundHit, groundCheck.position);
+        ParticleSpawnerManager.Instance.GetSpawned(ParticleType.DoubleJump, groundCheck.position);
         enableDoubleJump = false;
     }
 
@@ -242,6 +245,11 @@ public class PlayerController : PlayableCharacterControllerBase
         hasRaiseGameOver = false;
         waitingToGameOverTimeChecker.UpdateTime(waitingToGameOverDuration);
 
+        audioSource.clip = deadAudioClip;
+        audioSource.Play();
+
+        AudioExtendedManager.Instance.SetMusic(GameplayManager.Instance.endMusicName, false);
+
         UpdateDeadAnimation(true);
     }
 
@@ -253,7 +261,7 @@ public class PlayerController : PlayableCharacterControllerBase
         }
 
         hasRaiseGameOver = true;
-        GameManager.Instance.RaiseGameOver();
+        GameplayManager.Instance.RaiseGameOver();
     }
 
     private void DeadLeave()

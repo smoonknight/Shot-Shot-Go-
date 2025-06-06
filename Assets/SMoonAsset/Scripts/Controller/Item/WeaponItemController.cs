@@ -26,6 +26,8 @@ public abstract class WeaponItemController<T> : ItemController<T> where T : Item
         spriteRenderer.color = isPlayerAsMaster ? Color.white : Color.red;
     }
 
+    public bool IsOwner(PlayableCharacterControllerBase playableCharacter) => playableCharacter.Equals(this.playableCharacter);
+
     private void OnEnable()
     {
         isAttacking = false;

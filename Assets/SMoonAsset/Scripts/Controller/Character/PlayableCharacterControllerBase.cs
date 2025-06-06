@@ -16,13 +16,14 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     protected StatProperty characterStatProperty;
     [SerializeField]
     protected TypeStatPropertyCollector<MagicSwordItemType> magicSwordTypeStatPropertyCollector;
+    [SerializeField]
+    protected AudioClipSamples damagedAudioClipSamples;
+    [SerializeField]
+    protected AudioClipSamples attackAudioClipSamples;
 
     [ReadOnly]
     protected List<MagicSwordItemController> magicSwordItemControllers = new();
 
-    protected bool isGrounded;
-    protected float coyoteCounter;
-    protected float jumpBufferCounter;
     protected bool isImmuneDamage;
 
     protected bool isProcessTrampoline;
@@ -174,9 +175,15 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     {
         for (int i = 0; i < initialMagicSwordProperty.amount; i++)
         {
-            var magicSword = MagicSwordSpawnerManager.Instance.GetSpawned(initialMagicSwordProperty.type);
-            AddMagicSword(magicSword);
+            AddAndGetMagicSword(initialMagicSwordProperty.type);
         }
+    }
+
+    public MagicSwordItemController AddAndGetMagicSword(MagicSwordItemType type)
+    {
+        var magicSword = MagicSwordSpawnerManager.Instance.GetSpawned(type);
+        AddMagicSword(magicSword);
+        return magicSword;
     }
 
     public void AddMagicSword(MagicSwordItemController magicSword)
@@ -190,11 +197,6 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         jumpBufferCounter = jumpBufferTime;
     }
 
-    protected void Jump()
-    {
-        rigidBody.linearVelocity = new Vector2(rigidBody.linearVelocity.x, jumpForce);
-        coyoteCounter = 0;
-    }
 
     protected void ApplyBetterJump()
     {
@@ -256,7 +258,14 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
         var selectedMagicSword = enableAttackMagicSwords.GetRandom();
         if (selectedMagicSword != null)
         {
+            if (!selectedMagicSword.IsOwner(this))
+            {
+                magicSwordItemControllers.Remove(selectedMagicSword);
+                selectedMagicSword = AddAndGetMagicSword(selectedMagicSword.itemBase.type);
+            }
             selectedMagicSword.AttackAction();
+            if (attackAudioClipSamples.IsHaveSample())
+                audioSource.PlayOneShot(attackAudioClipSamples.GetClip());
         }
     }
 
@@ -296,6 +305,10 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
             IsDead = true;
             OnZeroHealth();
         }
+        else
+        {
+            DamagedAudio();
+        }
     }
     public virtual void TakeDamage(int damage, Vector2 sourcePosition)
     {
@@ -322,8 +335,15 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     {
         TakeDamage(10);
         Vector3 location = GameplayManager.Instance.GetOutOfBoundByGameMode();
-        transform.position = location;
-        rigidBody.linearVelocity = Vector3.zero;
+        ForceChangePosition(location);
+    }
+
+    public void DamagedAudio()
+    {
+        if (!damagedAudioClipSamples.IsHaveSample())
+            return;
+        audioSource.clip = damagedAudioClipSamples.GetClip();
+        audioSource.Play();
     }
 
     public abstract bool IsPlayer();

@@ -37,10 +37,10 @@ public class RogueManager : Singleton<RogueManager>
         return closest != null ? closest.transform.position : targetPosition;
     }
 
-    const float minimumEnvironmentChangeDuration = 15 / 3;
-    const float maximumEnvironmentChangeDuration = 30 / 6;
+    const float minimumEnvironmentChangeDuration = 15;
+    const float maximumEnvironmentChangeDuration = 33;
 
-    const float transitionEnvironmentChangeDuration = 5;
+    const float transitionEnvironmentChangeDuration = 7;
 
     const float modifierRate = 0.3f;
 
@@ -67,7 +67,7 @@ public class RogueManager : Singleton<RogueManager>
 
     private void OnDisable()
     {
-
+        cancellationTokenSource?.Cancel();
     }
 
     private void FixedUpdate()
@@ -99,11 +99,17 @@ public class RogueManager : Singleton<RogueManager>
         SetRandomEnvironment();
     }
 
+    public void EnvironmentStop()
+    {
+        cancellationTokenSource?.Cancel();
+    }
+
     private void SetupEnvironmentProperties()
     {
         foreach (var tilemapProperty in tilemapProperties)
         {
             tilemapProperty.tilemapController.gameObject.SetActive(false);
+            tilemapProperty.tilemapController.Reset();
         }
         foreach (var environmentProperty in environmentProperties)
         {
@@ -122,13 +128,81 @@ public class RogueManager : Singleton<RogueManager>
             float changeDuration = Random.Range(minimumEnvironmentChangeDuration, maximumEnvironmentChangeDuration);
             await UniTask.WaitForSeconds(changeDuration);
 
-            float time = 0;
-            while (time < transitionEnvironmentChangeDuration)
+            var nextProperties = environmentProperties.GetRandomWithExcept(currentEnvironmentProperty);
+
+            foreach (var ctrl in nextProperties.allowedTilemapControllers)
             {
-                time += Time.deltaTime;
+                ctrl.gameObject.SetActive(true);
             }
 
-            SetRandomEnvironment();
+            var nextSet = new HashSet<TilemapController>(nextProperties.allowedTilemapControllers);
+
+            var currentExclusive = new List<TilemapController>();
+            var nextExclusive = new List<TilemapController>();
+            var overlapping = new List<TilemapController>();
+
+            AudioExtendedManager.Instance.SetAudioMixerBGMLowpassSmoothly(0.1f);
+
+            foreach (var ctrl in currentEnvironmentProperty.allowedTilemapControllers)
+            {
+                if (nextSet.Contains(ctrl))
+                    overlapping.Add(ctrl);
+                else
+                    currentExclusive.Add(ctrl);
+            }
+            foreach (var ctrl in nextProperties.allowedTilemapControllers)
+            {
+                if (!currentEnvironmentProperty.allowedTilemapControllers.Contains(ctrl))
+                    nextExclusive.Add(ctrl);
+            }
+
+            foreach (var ctrl in nextExclusive)
+            {
+                ctrl.tilemapCollider2D.enabled = false;
+            }
+
+            // Transisi
+            float time = 0f;
+            while (time < transitionEnvironmentChangeDuration)
+            {
+                float value = Mathf.PingPong(time, 1f);
+                float inverse = 1f - value;
+
+                foreach (var ctrl in currentExclusive)
+                {
+                    var col = ctrl.tilemap.color;
+                    col.a = inverse;
+                    ctrl.tilemap.color = col;
+                }
+
+                foreach (var ctrl in nextExclusive)
+                {
+                    var col = ctrl.tilemap.color;
+                    col.a = value;
+                    ctrl.tilemap.color = col;
+                }
+
+                time += Time.deltaTime;
+
+                switch (transitionEnvironmentChangeDuration - Mathf.FloorToInt(time))
+                {
+                    case 3:
+                        AudioExtendedManager.Instance.Play(AudioName.SFX_THREE);
+                        break;
+                    case 2:
+                        AudioExtendedManager.Instance.Play(AudioName.SFX_TWO);
+                        break;
+                    case 1:
+                        AudioExtendedManager.Instance.Play(AudioName.SFX_ONE);
+                        break;
+                }
+
+                await UniTask.Yield();
+            }
+
+            AudioExtendedManager.Instance.SetAudioMixerBGMLowpassSmoothly(1);
+
+            SetEnvironment(nextProperties);
         }
     }
 
@@ -138,20 +212,18 @@ public class RogueManager : Singleton<RogueManager>
     {
         if (currentEnvironmentProperty != null)
         {
-            ResetEnvironment(currentEnvironmentProperty);
+            DisableEnvironment(currentEnvironmentProperty);
         }
         currentEnvironmentProperty = environmentProperty;
 
         foreach (var allowedTilemapController in currentEnvironmentProperty.allowedTilemapControllers)
         {
             allowedTilemapController.gameObject.SetActive(true);
-            allowedTilemapController.tilemap.enabled = true;
-            allowedTilemapController.tilemapCollider2D.enabled = true;
-            allowedTilemapController.tilemapRenderer.enabled = true;
+            allowedTilemapController.Reset();
         }
     }
 
-    private void ResetEnvironment(EnvironmentProperty environmentProperty)
+    private void DisableEnvironment(EnvironmentProperty environmentProperty)
     {
         foreach (var allowedTilemapController in environmentProperty.allowedTilemapControllers)
         {
@@ -198,5 +270,5 @@ public class TilemapProperty
 
 public enum TilemapType
 {
-    GroundFlat, WallToWallJump, FloatingMiddle
+    GroundFlat, WallToWallJump, FloatingMiddle, Skyland, GroundOfWall,
 }

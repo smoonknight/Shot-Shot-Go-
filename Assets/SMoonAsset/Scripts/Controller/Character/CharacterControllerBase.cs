@@ -48,6 +48,16 @@ public abstract class CharacterControllerBase : MonoBehaviour
     [SerializeField]
     protected Collider2D characterCollider;
 
+    [Header("Sound")]
+    [SerializeField]
+    protected AudioSource audioSource;
+    [SerializeField]
+    protected AudioClipSamples jumpClipSamples;
+
+    protected bool isGrounded;
+    protected float coyoteCounter;
+    protected float jumpBufferCounter;
+
     public Vector2 ColliderCenter => characterCollider.bounds.center;
     public float HalfHeight => characterCollider.bounds.size.y / 2f;
 
@@ -143,6 +153,13 @@ public abstract class CharacterControllerBase : MonoBehaviour
 
         rigidBody.linearVelocity = new Vector2(newVelocityX, rigidBody.linearVelocityY);
         SetDirection(targetVelocityX);
+    }
+
+    protected void Jump()
+    {
+        rigidBody.linearVelocity = new Vector2(rigidBody.linearVelocity.x, jumpForce);
+        coyoteCounter = 0;
+        JumpAudio();
     }
 
     protected void SetDirectionFromMoveTargetVelocity()
@@ -301,6 +318,12 @@ public abstract class CharacterControllerBase : MonoBehaviour
             sr.SetOpacity(opacity);
     }
 
+    public void ForceChangePosition(Vector2 position)
+    {
+        transform.position = position;
+        rigidBody.linearVelocity = Vector3.zero;
+    }
+
     protected void UpdateMoveAnimation()
     {
         lastMoveSmooth = Mathf.Lerp(lastMoveSmooth, Mathf.Abs(rigidBody.linearVelocity.x) / moveSpeed, inertiaRate * Time.deltaTime);
@@ -331,6 +354,12 @@ public abstract class CharacterControllerBase : MonoBehaviour
         }
         smoothValue = Mathf.Lerp(smoothValue, targetValue, inertiaRate * Time.deltaTime);
         animator.SetFloat(isValueHash, smoothValue);
+    }
+
+    protected void JumpAudio()
+    {
+        audioSource.clip = jumpClipSamples.GetClip();
+        audioSource.Play();
     }
 
     protected abstract float GetMoveTargetDirectionX();

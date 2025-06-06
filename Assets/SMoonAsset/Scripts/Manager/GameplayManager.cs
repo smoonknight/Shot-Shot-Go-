@@ -1,17 +1,37 @@
 using System;
 using System.Collections.Generic;
+using Cinemachine;
 using UnityEngine;
 
 public class GameplayManager : Singleton<GameplayManager>
 {
     public GameModeType currentGameModeType;
+    public MusicName musicName;
+    public MusicName endMusicName;
     public RateCollector<CollectableType> collectableTypeRateCollector;
     public List<PlayerUpgradePlanPorperty> playerUpgradePlanPorperties;
+    public CinemachineVirtualCamera cinemachineVirtualCamera;
+    public PlayerController playerControllerPrefab;
 
     protected override void OnAwake()
     {
         base.OnAwake();
         collectableTypeRateCollector.Calculate();
+        SetPlayerByGameMode(currentGameModeType);
+        AudioExtendedManager.Instance.SetMusic(musicName);
+    }
+
+    void SetPlayerByGameMode(GameModeType gameModeType)
+    {
+        PlayerController playerController = Instantiate(playerControllerPrefab);
+        Vector2 position = gameModeType switch
+        {
+            GameModeType.Normal => throw new NotImplementedException(),
+            GameModeType.Rogue => RogueManager.Instance.GetSampleSpawnPosition(),
+            _ => throw new NotImplementedException(),
+        };
+        playerController.ForceChangePosition(position);
+        cinemachineVirtualCamera.Follow = playerController.transform;
     }
 
     public Vector3 GetOutOfBoundByGameMode()
@@ -59,7 +79,18 @@ public class GameplayManager : Singleton<GameplayManager>
         return results;
     }
 
-
+    public void RaiseGameOver()
+    {
+        switch (currentGameModeType)
+        {
+            case GameModeType.Normal:
+                break;
+            case GameModeType.Rogue:
+                RogueManager.Instance.EnvironmentStop();
+                break;
+            default: throw new NotImplementedException();
+        }
+    }
 }
 
 [Serializable]

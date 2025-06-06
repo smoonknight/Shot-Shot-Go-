@@ -60,9 +60,11 @@ public class CollectableController : MonoBehaviour, IMagneticable, IOutOfBoundab
         {
             case CollectableType.Coin:
                 playerController.AddExperience(value);
+                AudioExtendedManager.Instance.PlayOnShot(AudioName.SFX_COIN);
                 break;
             case CollectableType.Heart:
                 playerController.AddHealth(value);
+                AudioExtendedManager.Instance.Play(AudioName.SFX_HEAL);
                 break;
             default:
                 break;

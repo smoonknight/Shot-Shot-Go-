@@ -20,11 +20,6 @@ public partial class GameManager : SingletonWithDontDestroyOnLoad<GameManager>
     public List<TypeStatProperty<MagicSwordItemType>> GetCopyOfDefaultMagicSwordTypeUpgradeProperties() => defaultItem.defaultMagicSwordItemTypeStatPropertyCollector.GetCopyOfTypeUpgradeProperties().ToList();
 
     public TypeStatProperty<EnemyType> GetCopyOfDefaultEnemyCharacterUpgradeProperty(EnemyType type) => defaultItem.enemyTypeStatPropertyCollector.GetStatProperty(type).Copy();
-
-    public void RaiseGameOver()
-    {
-        Debug.Log("Game Over");
-    }
 }
 
 public enum GameModeType

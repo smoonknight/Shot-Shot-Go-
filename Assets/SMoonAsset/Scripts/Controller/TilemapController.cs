@@ -10,19 +10,8 @@ using UnityEngine.Tilemaps;
 public class TilemapController : MonoBehaviour
 {
     public List<BoxCollider2D> spawnAreas;
-    [ReadOnly]
     public Tilemap tilemap;
-    [ReadOnly]
-    public TilemapRenderer tilemapRenderer;
-    [ReadOnly]
     public TilemapCollider2D tilemapCollider2D;
-
-    private void Awake()
-    {
-        tilemap = GetComponent<Tilemap>();
-        tilemapRenderer = GetComponent<TilemapRenderer>();
-        tilemapCollider2D = GetComponent<TilemapCollider2D>();
-    }
 
     public bool IsSpawnAreasExist => spawnAreas.Count != 0;
 
@@ -33,5 +22,11 @@ public class TilemapController : MonoBehaviour
         float x = Random.Range(bounds.min.x, bounds.max.x);
         float y = Random.Range(bounds.min.y, bounds.max.y);
         return new Vector2(x, y);
+    }
+
+    public void Reset()
+    {
+        tilemap.color = Color.white;
+        tilemapCollider2D.enabled = true;
     }
 }

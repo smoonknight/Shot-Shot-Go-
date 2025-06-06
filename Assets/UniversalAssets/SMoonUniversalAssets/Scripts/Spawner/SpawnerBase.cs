@@ -107,6 +107,7 @@ namespace SMoonUniversalAsset
             {
                 throw new IndexOutOfRangeException("not found!");
             }
+            selectedSpawnProperty = CreateCopy(selectedSpawnProperty);
             AddSpawnPropertyToSpawnedPropertyPool(selectedSpawnProperty, setActiveValue, out newComponent);
         }
 
@@ -159,6 +160,7 @@ namespace SMoonUniversalAsset
             {
                 throw new IndexOutOfRangeException(type + " not found!");
             }
+            selectedSpawnProperty = CreateCopy(selectedSpawnProperty);
             AddSpawnPropertyToSpawnedPropertyPool(selectedSpawnProperty, setActiveValue, out newComponent);
         }
 

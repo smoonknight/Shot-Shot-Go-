@@ -15,6 +15,8 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     private float sideDetectionRange = 1f;
     [SerializeField]
     private float verticalToleranceForAttacking = 0.3f;
+    [SerializeField]
+    private AudioClip sayNakamaAudioClip;
 
     private bool holdingJump;
     private bool isWantToMoving;
@@ -40,9 +42,12 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     const float maximumInterestDuration = 15;
 
     FMinMaxRandomizer wantToJumpRandomizer = new(1, 2);
+    FMinMaxRandomizer wantToSayNakamaRandomizer = new(10, 15);
 
     private Vector3 targetMovePosition;
     private FillChecker wantToJumpFillChecker;
+    private FillChecker wantToSayNakamaFillChecker;
+
 
     CancellationTokenSource squashCancellationTokenSource;
     CancellationTokenSource holdingJumpRandomizerCancellationTokenSource;
@@ -58,6 +63,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         base.Awake();
 
         wantToJumpFillChecker = new(wantToJumpRandomizer.GetRandomize());
+        wantToSayNakamaFillChecker = new(wantToSayNakamaRandomizer.GetRandomize());
 
         enemyStateMachine = new();
         enemyStateMachine.Initialize(this, EnemyStateType.Scouting);
@@ -121,8 +127,9 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         {
             if (wantToJumpFillChecker.PushFill(Time.deltaTime))
             {
-                wantToJumpFillChecker.SetFill(wantToJumpRandomizer.GetRandomize());
+                wantToJumpFillChecker.SetRequireFill(wantToJumpRandomizer.GetRandomize());
                 ProcessHoldingJumpRandomize(holdingJumpRandomizerCancellationTokenSource.ResetToken());
+                JumpAudio();
                 SetForce(new Vector2(direction, 1) * jumpForce, 3f, true, () => isGrounded || rigidBody.linearVelocityX == 0);
             }
             return isEdge ? 0 : direction;
@@ -150,6 +157,12 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         return new();
     }
 
+    protected RaycastHit2D GetRaycastHit2DOnSide(float distance, LayerMask targetMask)
+    {
+        Vector2 direction = isFacingRight ? Vector2.right : Vector2.left;
+        return Physics2D.Raycast(transform.position, direction, distance, targetMask);
+    }
+
     protected void CloseAttack()
     {
         Vector2 targetCenter = playerController.ColliderCenter;
@@ -173,6 +186,28 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
             Fire();
             wantToShotTimeChecker.UpdateTime(characterStatProperty.attackInterval);
         }
+    }
+
+    private void WantToSayNakama()
+    {
+        RaycastHit2D raycastHit2D = GetRaycastHit2DOnSide(1, LayerMaskManager.Instance.enemyMask);
+        if (raycastHit2D.collider != null)
+        {
+            if (wantToSayNakamaFillChecker.PushFill(Time.deltaTime))
+            {
+                SayNakama();
+                wantToSayNakamaFillChecker.SetRequireFill(wantToSayNakamaRandomizer.GetRandomize());
+            }
+            return;
+        }
+        wantToJumpFillChecker.ReduceFill(Time.deltaTime);
+    }
+
+    void SayNakama()
+    {
+        ParticleSpawnerManager.Instance.GetSpawned(ParticleType.Nakama, transform.position + Vector3.up * 1.5f);
+        audioSource.clip = sayNakamaAudioClip;
+        audioSource.Play();
     }
 
     protected bool TryGetPlayerPosition()
@@ -296,6 +331,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     {
         ValidateMove();
         WantToShoot();
+        WantToSayNakama();
         if (playerController != null && Vector2.Distance(groundCheck.position, playerController.transform.position) < playerDetection)
         {
             isWantToMoving = true;
@@ -365,6 +401,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     private void ScoutingFixedUpdate()
     {
         ValidateMove();
+        WantToSayNakama();
     }
 
     public class ScoutingState : BaseState<EnemyController>

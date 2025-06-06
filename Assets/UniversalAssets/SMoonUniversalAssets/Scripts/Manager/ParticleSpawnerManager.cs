@@ -21,5 +21,5 @@ namespace SMoonUniversalAsset
 
 public enum ParticleType
 {
-    ImpactGroundHit
+    DoubleJump, Explosion, Nakama
 }
