@@ -94,3 +94,12 @@ MonoBehaviour:
         damage: 10
         jump: 6
         exp: 25
+    - type: 3
+      statProperty:
+        size: 1
+        attackInterval: 2.5
+        speed: 2
+        health: 120
+        damage: 10
+        jump: 6
+        exp: 100

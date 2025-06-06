@@ -128,7 +128,7 @@ public class PlayerController : PlayableCharacterControllerBase
 
     public void AddExperience(int experience)
     {
-        experienceStat.AddExperience(experience, out bool isLevelUp, out int currentLevel, out int LevelUpCount);
+        float percentage = experienceStat.AddExperienceAndGetRemainingExpPercentage(experience, out bool isLevelUp, out int currentLevel, out int LevelUpCount);
         if (isLevelUp)
         {
             var upgrades = GameplayManager.Instance.GetUpgradeStatsRandomly(LevelUpCount);
@@ -138,7 +138,9 @@ public class PlayerController : PlayableCharacterControllerBase
                 isExecuteUpgradeStat = true;
                 ExecuteUpgradeStat();
             }
+            UIManager.Instance.SetLevel(currentLevel);
         }
+        UIManager.Instance.SetExperience(percentage);
     }
 
     public async void ExecuteUpgradeStat()
@@ -152,7 +154,28 @@ public class PlayerController : PlayableCharacterControllerBase
             var list = listOfPlayerUpgradePlanPorperties[0];
             listOfPlayerUpgradePlanPorperties.RemoveAt(0);
 
-            await UIManager.Instance.StartChooseUpgrade(this, list, hasStart, listOfPlayerUpgradePlanPorperties.Count != 0);
+            List<(UpgradeType upgradeType, UpgradeStat upgradeStat, int index)> values = new();
+
+            int index = 0;
+            foreach (var item in list)
+            {
+                UpgradeStat upgradeStat = item.GetUpgradeStatPlan();
+                (UpgradeType upgradeType, UpgradeStat upgradeStat, int index) value = new()
+                {
+                    upgradeType = item.type,
+                    upgradeStat = upgradeStat,
+                    index = index
+                };
+
+                values.Add(value);
+
+                index++;
+            }
+
+            int selectedIndex = await UIManager.Instance.StartChooseUpgrade(this, values, hasStart, listOfPlayerUpgradePlanPorperties.Count != 0);
+
+            list[selectedIndex].CurrentPlanIndex++;
+
             hasStart = true;
         }
 
@@ -161,6 +184,7 @@ public class PlayerController : PlayableCharacterControllerBase
 
         isExecuteUpgradeStat = false;
     }
+    // TODO Lengkapi UI saat upgrade stat
 
     public void AddHealth(int health)
     {
@@ -194,6 +218,17 @@ public class PlayerController : PlayableCharacterControllerBase
     public override bool HoldingJump() => input.Jump;
     public override StatProperty GetCharacterUpgradeProperty() => GameManager.Instance.GetCopyOfDefaultCharacterUpgradeProperty();
     public override bool CheckOutOfBound() => true;
+
+    public override void OnUpgradeCharacterStatProperty(UpgradeStat upgradeStat)
+    {
+        switch (upgradeStat.type)
+        {
+            case UpgradeStatType.health:
+                UIManager.Instance.SetMaximumHealth(this);
+                AddHealth(Mathf.RoundToInt(upgradeStat.value));
+                break;
+        }
+    }
     #region Dead State
 
     private const float waitingToGameOverDuration = 2;

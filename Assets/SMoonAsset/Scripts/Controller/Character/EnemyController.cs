@@ -40,7 +40,6 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     const float maximumInterestDuration = 15;
 
     FMinMaxRandomizer wantToJumpRandomizer = new(1, 2);
-    FMinMaxRandomizer wantToShotRandomizer = new(5, 10);
 
     private Vector3 targetMovePosition;
     private FillChecker wantToJumpFillChecker;
@@ -172,7 +171,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         if (wantToShotTimeChecker.IsDurationEnd())
         {
             Fire();
-            wantToShotTimeChecker.UpdateTime(wantToJumpRandomizer.GetRandomize());
+            wantToShotTimeChecker.UpdateTime(characterStatProperty.attackInterval);
         }
     }
 
@@ -218,9 +217,9 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
         await LerpScaleY(transform.localScale.y, originalScaleY, normalAfterSquasedDuration, cancellationToken);
 
-        Vector3 finalScale = transform.localScale;
-        finalScale.y = initialScale.y;
-        transform.localScale = finalScale;
+        Vector3 scale = transform.localScale;
+        scale.x = isFacingRight ? horizontalScale : horizontalScale * -1;
+        transform.localScale = scale;
         enableMove = true;
     }
 
@@ -271,11 +270,15 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     {
     }
 
+    public override void OnUpgradeCharacterStatProperty(UpgradeStat upgradeStat)
+    {
+    }
+
     #region Target Lock State
 
     private void TargetLockEnter()
     {
-        wantToShotTimeChecker.UpdateTime(wantToShotRandomizer.GetRandomize());
+        wantToShotTimeChecker.UpdateTime(characterStatProperty.attackInterval);
     }
 
     private void TargetLockUpdate()
@@ -418,5 +421,5 @@ public enum EnemyStateType
 
 public enum EnemyType
 {
-    Trired, Twored, OneRed
+    Trired, Twored, OneRed, BossRed
 }

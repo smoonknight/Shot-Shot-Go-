@@ -20,12 +20,12 @@ namespace SMoonUniversalAsset
         {
             for (int i = 0; i < spawnProperties.Count; i++)
             {
-                T instance = UnityEngine.Object.Instantiate(spawnProperties[i].component, pool);
+                G spawnProperty = spawnProperties[i];
+                T instance = UnityEngine.Object.Instantiate(spawnProperty.component, pool);
                 instance.gameObject.SetActive(false);
+                instance.name = spawnProperty.component.name;
 
-                var prop = spawnProperties[i];
-                prop.instance = instance;
-                spawnProperties[i] = prop;
+                spawnProperty.instance = instance;
             }
             int poolSize = GetInitialPoolSize();
             spawnedPropertyPool = new HashSet<G>(poolSize);
@@ -40,12 +40,12 @@ namespace SMoonUniversalAsset
             }
         }
 
-        protected void AddSpawnPropertyToSpawnedPropertyPool(G spawnedProperty, bool setActiveValue, out T component)
+        protected void AddSpawnPropertyToSpawnedPropertyPool(G spawnedProperty, bool setActiveValue, out T instance)
         {
-            component = UnityEngine.Object.Instantiate(spawnedProperty.component, pool);
-            component.gameObject.SetActive(setActiveValue);
-            spawnedProperty.instance = component;
-            spawnedProperty.instance.name = $"{component.name} {spawnedPropertyPool.Count}";
+            instance = UnityEngine.Object.Instantiate(spawnedProperty.component, pool);
+            instance.gameObject.SetActive(setActiveValue);
+            spawnedProperty.instance = instance;
+            spawnedProperty.instance.name = $"{spawnedProperty.component.name} {spawnedPropertyPool.Count}";
             spawnedPropertyPool.Add(spawnedProperty);
         }
 
@@ -56,6 +56,10 @@ namespace SMoonUniversalAsset
                 float time = 0;
                 while (time < duration)
                 {
+                    if (component == null || !component.gameObject.activeInHierarchy)
+                    {
+                        break;
+                    }
                     Vector3 position = onSetDeactiveOnDurationUpdate.Invoke();
                     component.transform.position = position;
                     time += Time.deltaTime;
@@ -64,9 +68,9 @@ namespace SMoonUniversalAsset
             }
             else
             {
-                await UniTask.WaitForSeconds(duration);
+                await UniTaskExtensions.DelayWithCancel(duration, () => component == null || !component.gameObject.activeInHierarchy);
             }
-            component.gameObject.SetActive(false);
+            component?.gameObject.SetActive(false);
         }
 
         public int GetActiveSpawn()

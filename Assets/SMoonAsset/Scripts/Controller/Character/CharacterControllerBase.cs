@@ -69,6 +69,10 @@ public abstract class CharacterControllerBase : MonoBehaviour
     float lastMoveSmooth;
     float lastJumpSmooth;
 
+    protected Vector3 initialScale;
+
+    protected float horizontalScale = 1;
+
     [SerializeField]
     [ReadOnly]
     public bool isFacingRight = true;
@@ -113,6 +117,14 @@ public abstract class CharacterControllerBase : MonoBehaviour
         isDeadHash = Animator.StringToHash("Is Dead");
 
         spriteRenderers = TransformHelper.GetComponentsRecursively<SpriteRenderer>(transform);
+
+        SetInitial();
+    }
+
+    public void SetInitial()
+    {
+        initialScale = transform.localScale;
+        horizontalScale = initialScale.x;
     }
 
     protected void ValidateMove()
@@ -162,7 +174,8 @@ public abstract class CharacterControllerBase : MonoBehaviour
         float latestScaleX = transform.localScale.x;
 
         float time = 0;
-        float targetScaleX = isRightDirection ? 1 : -1;
+
+        float targetScaleX = isRightDirection ? horizontalScale : horizontalScale * -1;
         Vector2 scale;
         while (time < changeDirectionTime && !cancellationToken.IsCancellationRequested)
         {

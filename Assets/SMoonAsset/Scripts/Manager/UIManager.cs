@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using SMoonUniversalAsset;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,12 +15,16 @@ public class UIManager : Singleton<UIManager>
     [Space]
     [SerializeField]
     private Canvas characterUpgradeCanvas;
-
     [SerializeField]
     private ChooseUpgradeSpawner chooseUpgradeSpawner;
-
     [SerializeField]
     private List<UpgradeSpriteProperty> upgradeSpriteProperties;
+    [Space]
+    [SerializeField]
+    private TextMeshProUGUI levelText;
+    [Space]
+    [SerializeField]
+    private Image experienceImageBar;
 
     private List<HeartUIView> heartUIViews = new();
 
@@ -47,10 +52,10 @@ public class UIManager : Singleton<UIManager>
         SetHealth(playerController);
     }
 
-    public void SetHealth(PlayerController playerController)
+    public void SetHealth(PlayerController playerController, bool checkLatest = true)
     {
         float totalHearts = playerController.Health / heartRate;
-        if (latestHeart == totalHearts)
+        if (latestHeart == totalHearts && checkLatest)
             return;
 
         latestHeart = totalHearts;
@@ -98,39 +103,59 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
-    public async UniTask StartChooseUpgrade(PlayerController playerController, List<PlayerUpgradePlanPorperty> playerUpgradePlanPorperties, bool startImmidietly, bool endImmidietly)
+    public void SetExperience(float percentage)
+    {
+        experienceImageBar.fillAmount = percentage;
+    }
+
+    public void SetLevel(int level)
+    {
+        levelText.text = $"Level {level}";
+    }
+
+    /// <summary>
+    /// Displays a list of upgrade options and waits for the player to select one.
+    /// Returns the index of the selected upgrade asynchronously.
+    /// </summary>
+    /// <param name="playerController">The player controller initiating the upgrade selection.</param>
+    /// <param name="values">A list of upgrade candidates, each containing the type, stat, and index.</param>
+    /// <param name="startImmidietly">If true, the selection UI will appear immediately.</param>
+    /// <param name="endImmidietly">If true, the selection UI will disappear immediately after selection.</param>
+    /// <returns>A UniTask that completes with the index of the selected upgrade.</returns>
+    public async UniTask<int> StartChooseUpgrade(PlayerController playerController, List<(UpgradeType upgradeType, UpgradeStat upgradeStat, int index)> values, bool startImmidietly, bool endImmidietly)
     {
         chooseUpgradeSpawner.HideSpawn();
         bool isSelected = false;
+        int selectedIndex = 0;
         characterUpgradeCanvas.enabled = true;
 
         List<ImageButtonView> chooseUpgradeImageButtonViews = new();
 
-        for (int i = 0; i < playerUpgradePlanPorperties.Count; i++)
+        for (int i = 0; i < values.Count; i++)
         {
-            PlayerUpgradePlanPorperty playerUpgradePlanPorperty = playerUpgradePlanPorperties[i];
             ImageButtonView imageButtonView = chooseUpgradeSpawner.GetSpawned();
             chooseUpgradeImageButtonViews.Add(imageButtonView);
         }
-        for (int i = 0; i < playerUpgradePlanPorperties.Count; i++)
+        for (int i = 0; i < values.Count; i++)
         {
             ImageButtonView imageButtonView = chooseUpgradeImageButtonViews[i];
-            PlayerUpgradePlanPorperty playerUpgradePlanPorperty = playerUpgradePlanPorperties[i];
-            Sprite sprite = GetSpriteByType(playerUpgradePlanPorperty.type);
-            string titleText = LanguageManager.Instance.GetAddressableStringId(playerUpgradePlanPorperty.type).ToCommonLanguage();
-            UpgradeStat upgradeStat = playerUpgradePlanPorperty.upgradeStats.GetRandom();
-            string descriptionText = upgradeStat.type.ToString();
-            imageButtonView.Initialize(sprite, titleText, descriptionText, () => OnChooseItem(playerController, chooseUpgradeImageButtonViews, imageButtonView, playerUpgradePlanPorperty.type, upgradeStat, ref isSelected, endImmidietly));
+            (UpgradeType upgradeType, UpgradeStat upgradeStat, int index) value = values[i];
+            Sprite sprite = GetSpriteByType(value.upgradeType);
+            string titleText = LanguageManager.Instance.GetAddressableStringId(value.upgradeType).ToCommonLanguage();
+            string descriptionText = LanguageManager.Instance.GetAddressableStringId(value.upgradeType, value.upgradeStat.type).ToCommonLangaugeWithReplector(value.upgradeStat.value);
+            imageButtonView.Initialize(sprite, titleText, descriptionText, () => OnChooseItem(playerController, chooseUpgradeImageButtonViews, imageButtonView, value, ref isSelected, ref selectedIndex, endImmidietly));
         }
 
         await UniTask.WaitUntil(() => isSelected);
         characterUpgradeCanvas.enabled = false;
+        return selectedIndex;
     }
 
-    private void OnChooseItem(PlayerController playerController, List<ImageButtonView> chooseUpgradeImageButtonViews, ImageButtonView selectedImageButtonView, UpgradeType upgradeType, UpgradeStat upgradeStat, ref bool isSelected, bool endImmidietly)
+    private void OnChooseItem(PlayerController playerController, List<ImageButtonView> chooseUpgradeImageButtonViews, ImageButtonView selectedImageButtonView, (UpgradeType upgradeType, UpgradeStat upgradeStat, int index) value, ref bool isSelected, ref int selectedIndex, bool endImmidietly)
     {
-        playerController.UpgradeStatProperty(upgradeType, upgradeStat);
+        playerController.UpgradeStatProperty(value.upgradeType, value.upgradeStat);
         isSelected = true;
+        selectedIndex = value.index;
     }
 
     public Sprite GetSpriteByType(UpgradeType type) => upgradeSpriteProperties.Find(find => find.type == type).sprite;

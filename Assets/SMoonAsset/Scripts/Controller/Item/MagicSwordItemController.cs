@@ -35,7 +35,10 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
     static readonly Collider2D[] colliderBuffer = new Collider2D[16];
 
-    void OnTriggerEnter2D(Collider2D collision)
+    void OnTriggerEnter2D(Collider2D collision) => OnTriggerEvent2D(collision);
+    void OnTriggerStay2D(Collider2D collision) => OnTriggerEvent2D(collision);
+
+    void OnTriggerEvent2D(Collider2D collision)
     {
         if (ValidateTriggerEnter2D(collision) && startDetectTarget)
         {
@@ -45,7 +48,16 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
     bool ValidateTriggerEnter2D(Collider2D collider2D) => targetMask.CompareWithLayerIndex(collider2D.gameObject.layer);
 
-    private Vector3 GetStandPosition() => master.transform.position + standPosition;
+    private bool TryGetStandPosition(out Vector2 position)
+    {
+        if (master == null)
+        {
+            position = Vector2.zero;
+            return false;
+        }
+        position = master.transform.position + standPosition;
+        return true;
+    }
 
     protected void Awake()
     {
@@ -101,14 +113,20 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
     private void ResetPositionRandomizeAndScale()
     {
         RandomizeStandPosition();
-        transform.position = GetStandPosition();
+        if (TryGetStandPosition(out Vector2 position))
+            transform.position = position;
+        ResetScale();
+    }
+
+    private void ResetScale()
+    {
         transform.localScale = Vector3.one;
     }
 
     private UnityAction GetAttackTask(MagicSwordItemType type) => type switch
     {
         MagicSwordItemType.Common => OnMasterDirection,
-        MagicSwordItemType.OnTarget => () => AttackDetectionTarget(OnTargetAttack),
+        MagicSwordItemType.OnTarget => () => AttackDetectionTarget(OnTargetAttack, ResetScale),
         MagicSwordItemType.Slashing => () => AttackDetectionTarget(SlasherAttack, ResetPositionRandomizeAndScale),
         _ => throw new NotImplementedException(),
     };
@@ -154,12 +172,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
     private void AttackDetectionTarget(Func<Collider2D, CancellationToken, UniTask> onAttackingTarget, UnityAction onClearAttacking = null)
     {
-        Collider2D collider = GetNearestTarget(master.position, detectionRange, targetMask);
-
-        if (collider == null)
-        {
-            return;
-        }
+        Collider2D collider = GetNearestTarget(master.position, detectionRange, targetMask) ?? boxCollider2D;
 
         AttackingTarget(collider, onAttackingTarget, onClearAttacking);
     }
@@ -180,6 +193,10 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
     private async void OnMasterDirection()
     {
+        if (playableCharacter == null)
+        {
+            return;
+        }
         isAttacking = true;
         Vector3 direction = playableCharacter.isFacingRight ? Vector3.right : Vector3.left;
         Vector3 targetPosition = transform.position + direction * travelRange;
@@ -194,7 +211,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
     private async UniTask OnTargetAttack(Collider2D target, CancellationToken cancellationToken)
     {
-        await TravelToTarget(target.transform.position, cancellationToken, false);
+        await TravelToTarget(target.transform.position, cancellationToken, false, ResetScale);
     }
 
     private async UniTask TravelToTarget(Vector3 targetPosition, CancellationToken cancellationToken, bool oneTimeDealDamage, UnityAction onTravelFinish = null)
@@ -205,6 +222,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         Vector3 direction = (targetPosition - transform.position).normalized;
         Quaternion targetRotation = Quaternion.LookRotation(Vector3.forward, direction);
         transform.rotation = targetRotation;
+        transform.localScale = Vector3.one * statProperty.size;
 
         ResetAlreadyDamaged();
 
@@ -215,7 +233,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
                 startDetectTarget = false;
                 return;
             }
-            if (oneTimeDealDamage && TryDealDamageToTarget(damageable, false))
+            if (TryDealDamageToTarget(damageable, false) && oneTimeDealDamage)
                 break;
 
             Vector2 oldPosition = transform.position;
@@ -383,9 +401,12 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         }
 
         float inertiaValue = inertiaRate * Time.deltaTime;
-        Vector3 targetPosition = GetStandPosition();
-        transform.SetPositionAndRotation(Vector3.Lerp(transform.position, targetPosition, inertiaValue),
-            Quaternion.Lerp(transform.rotation, standRotation, inertiaValue));
+        if (TryGetStandPosition(out Vector2 position))
+        {
+            Vector3 targetPosition = position;
+            transform.SetPositionAndRotation(Vector3.Lerp(transform.position, targetPosition, inertiaValue),
+                Quaternion.Lerp(transform.rotation, standRotation, inertiaValue));
+        }
     }
 
     public class ActiveState : BaseState<MagicSwordItemController>

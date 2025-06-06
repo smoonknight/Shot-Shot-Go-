@@ -37,8 +37,8 @@ public class RogueManager : Singleton<RogueManager>
         return closest != null ? closest.transform.position : targetPosition;
     }
 
-    const float minimumEnvironmentChangeDuration = 15;
-    const float maximumEnvironmentChangeDuration = 30;
+    const float minimumEnvironmentChangeDuration = 15 / 3;
+    const float maximumEnvironmentChangeDuration = 30 / 6;
 
     const float transitionEnvironmentChangeDuration = 5;
 
@@ -132,13 +132,13 @@ public class RogueManager : Singleton<RogueManager>
         }
     }
 
-    private void SetRandomEnvironment() => SetEnvironment(environmentProperties.GetRandom());
+    private void SetRandomEnvironment() => SetEnvironment(environmentProperties.GetRandomWithExcept(currentEnvironmentProperty));
 
     private void SetEnvironment(EnvironmentProperty environmentProperty)
     {
         if (currentEnvironmentProperty != null)
         {
-            ResetEnvironment(environmentProperty);
+            ResetEnvironment(currentEnvironmentProperty);
         }
         currentEnvironmentProperty = environmentProperty;
 
@@ -153,9 +153,9 @@ public class RogueManager : Singleton<RogueManager>
 
     private void ResetEnvironment(EnvironmentProperty environmentProperty)
     {
-        foreach (var allowedTilemapControllers in environmentProperty.allowedTilemapControllers)
+        foreach (var allowedTilemapController in environmentProperty.allowedTilemapControllers)
         {
-            allowedTilemapControllers.gameObject.SetActive(false);
+            allowedTilemapController.gameObject.SetActive(false);
         }
     }
 

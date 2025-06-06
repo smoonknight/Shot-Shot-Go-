@@ -20,11 +20,13 @@ public class ExperienceStat
     public int GetLevel(int exp) => GetLevel(exp, startLevel);
     public int GetLevel(int exp, int startLevel) => Math.Min(maximumLevel, (int)Math.Floor(startLevel + (Math.Sqrt(1 + 8 * exp / factor) / 2)));
 
+    public int ExpRequireOnLevel(int level) => Mathf.FloorToInt((4 * (level + 1) * (level + 1) - 1) * factor / 8);
+
     public bool IsNextExpRequire(out int expRequire)
     {
         int level = Level;
         int netralLevel = level - startLevel;
-        expRequire = Mathf.FloorToInt((4 * (netralLevel + 1) * (netralLevel + 1) - 1) * factor / 8);
+        expRequire = ExpRequireOnLevel(netralLevel);
         return level < maximumLevel;
     }
 
@@ -55,5 +57,16 @@ public class ExperienceStat
 
         isLevelUp = currentLevel > previousLevel;
         levelUpCount = currentLevel - previousLevel;
+    }
+
+    public float AddExperienceAndGetRemainingExpPercentage(int amount, out bool isLevelUp, out int currentLevel, out int levelUpCount)
+    {
+        AddExperience(amount, out isLevelUp, out currentLevel, out levelUpCount);
+
+        int normalizedLevel = NormalizedLevel;
+        int expRequire = ExpRequireOnLevel(normalizedLevel);
+        int prevExpRequire = ExpRequireOnLevel(normalizedLevel - 1);
+        Debug.Log($"{exp}-{prevExpRequire}/{expRequire}-{prevExpRequire}");
+        return (float)(exp - prevExpRequire) / (expRequire - prevExpRequire);
     }
 }

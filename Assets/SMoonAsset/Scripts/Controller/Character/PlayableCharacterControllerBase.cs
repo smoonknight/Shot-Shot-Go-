@@ -20,8 +20,6 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     [ReadOnly]
     protected List<MagicSwordItemController> magicSwordItemControllers = new();
 
-    protected Vector3 initialScale;
-
     protected bool isGrounded;
     protected float coyoteCounter;
     protected float jumpBufferCounter;
@@ -39,7 +37,6 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     protected override void Awake()
     {
         base.Awake();
-        SetInitial();
         SetupPlayable();
     }
 
@@ -52,11 +49,6 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     {
         base.OnDisable();
         immuneCancellationTokenSource?.Cancel();
-    }
-
-    public void SetInitial()
-    {
-        initialScale = transform.localScale;
     }
 
     public virtual void SetupPlayable()
@@ -117,6 +109,8 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
                 characterStatProperty.jump += upgradeStat.value;
                 break;
         }
+
+        OnUpgradeCharacterStatProperty(upgradeStat);
 
         SetCharacterStatProperty(characterStatProperty);
     }
@@ -338,6 +332,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     public abstract StatProperty GetCharacterUpgradeProperty();
     public abstract bool CheckOutOfBound();
     public abstract void OnSetCharacterStatProperty(StatProperty upgradeProperty);
+    public abstract void OnUpgradeCharacterStatProperty(UpgradeStat upgradeStat);
 }
 
 [System.Serializable]

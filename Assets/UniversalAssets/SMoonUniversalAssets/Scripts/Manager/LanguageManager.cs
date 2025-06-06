@@ -143,6 +143,38 @@ namespace SMoonUniversalAsset
             UpgradeType.MagicSword_Slashing => StringId.UpgradeTypeMagicSword_Slashing,
             _ => throw new NotImplementedException(),
         };
+
+        public StringId GetAddressableStringId(UpgradeType upgradeType, UpgradeStatType upgradeStatType) => upgradeType switch
+        {
+            UpgradeType.Character => upgradeStatType switch
+            {
+                UpgradeStatType.size => StringId.CharacterSize,
+                UpgradeStatType.attackInterval => StringId.CharacterAttackInterval,
+                UpgradeStatType.speed => StringId.CharacterSpeed,
+                UpgradeStatType.health => StringId.CharacterHealth,
+                UpgradeStatType.damage => StringId.CharacterDamage,
+                UpgradeStatType.jump => StringId.CharacterJump,
+                UpgradeStatType.quantity => StringId.CharacterQuantity,
+                _ => throw new NotImplementedException(),
+            },
+
+            UpgradeType.MagicSword_Common or
+            UpgradeType.MagicSword_OnTarget or
+            UpgradeType.MagicSword_Slashing => upgradeStatType switch
+            {
+                UpgradeStatType.size => StringId.MagicSwordSize,
+                UpgradeStatType.attackInterval => StringId.MagicSwordAttackInterval,
+                UpgradeStatType.speed => StringId.MagicSwordSpeed,
+                UpgradeStatType.health => StringId.MagicSwordHealth,
+                UpgradeStatType.damage => StringId.MagicSwordDamage,
+                UpgradeStatType.jump => StringId.MagicSwordJump,
+                UpgradeStatType.quantity => StringId.MagicSwordQuantity,
+                _ => throw new NotImplementedException(),
+            },
+
+            _ => throw new NotImplementedException(),
+        };
+
     }
 
     public static class LanguageHelper

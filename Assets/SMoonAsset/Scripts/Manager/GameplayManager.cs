@@ -47,7 +47,6 @@ public class GameplayManager : Singleton<GameplayManager>
             var pool = new List<PlayerUpgradePlanPorperty>(playerUpgradePlanPorperties);
             int takeCount = Math.Min(itemPerList, pool.Count);
 
-            // Partial Fisher-Yates shuffle untuk ambil 3 item acak unik dari pool
             for (int i = 0; i < takeCount; i++)
             {
                 int j = rnd.Next(i, pool.Count);
@@ -68,6 +67,27 @@ public class PlayerUpgradePlanPorperty
 {
     public UpgradeType type;
     public List<UpgradeStat> upgradeStats;
+
+    public int randomizeIndex;
+
+    public UpgradeStat GetUpgradeStatPlan()
+    {
+        if (CurrentPlanIndex == randomizeIndex) upgradeStats.Randomize();
+        return upgradeStats[CurrentPlanIndex];
+    }
+    private int currentPlanIndex = 0;
+    public int CurrentPlanIndex
+    {
+        get => currentPlanIndex;
+        set
+        {
+            currentPlanIndex = value;
+            if (currentPlanIndex >= upgradeStats.Count)
+            {
+                currentPlanIndex = 0;
+            }
+        }
+    }
 }
 
 [Serializable]

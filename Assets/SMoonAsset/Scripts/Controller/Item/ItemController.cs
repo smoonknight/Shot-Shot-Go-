@@ -12,7 +12,7 @@ public abstract class ItemController<T> : MonoBehaviour where T : ItemBase
         spriteRenderer.sprite = itemBase.GetSprite();
     }
 
-    public void Disable()
+    public virtual void Disable()
     {
         if (isSkipTransitionDestroy)
         {

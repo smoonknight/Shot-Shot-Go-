@@ -22,11 +22,20 @@ public abstract class WeaponItemController<T> : ItemController<T> where T : Item
         this.isPlayerAsMaster = isPlayerAsMaster;
         targetMask = isPlayerAsMaster ? LayerMaskManager.Instance.enemyMask : LayerMaskManager.Instance.playerMask;
         this.statProperty = statProperty;
+
+        spriteRenderer.color = isPlayerAsMaster ? Color.white : Color.red;
     }
 
     private void OnEnable()
     {
         isAttacking = false;
+    }
+
+    public override void Disable()
+    {
+        playableCharacter = null;
+        master = null;
+        base.Disable();
     }
 
     public bool TryAttackAction()

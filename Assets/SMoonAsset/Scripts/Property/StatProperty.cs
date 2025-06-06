@@ -15,6 +15,7 @@ public class StatProperty
     public int exp;
 
     const float sizeMultiplierRate = 0.1f;
+    const float attackIntervalMultiplierRate = 0.1f;
     const float speedMultiplierRate = 0.25f;
     const float healthMultiplierRate = 3.5f;
     const float damageMultiplierRate = 1.1f;
@@ -35,11 +36,12 @@ public class StatProperty
     public void Multiplier(float value)
     {
         size += value * sizeMultiplierRate;
+        attackInterval -= value * attackIntervalMultiplierRate;
         speed += value * speedMultiplierRate;
         health = Mathf.CeilToInt(health + (value * healthMultiplierRate));
         damage = Mathf.CeilToInt(damage + (value * damageMultiplierRate));
         jump += value * jumpMultiplierRate;
-        exp = Mathf.CeilToInt(exp * value * expMultiplierRate);
+        exp = Mathf.CeilToInt(exp + (value * expMultiplierRate));
     }
 }
 
