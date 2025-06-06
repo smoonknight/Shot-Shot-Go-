@@ -70,7 +70,8 @@ namespace SMoonUniversalAsset
             {
                 await UniTaskExtensions.DelayWithCancel(duration, () => component == null || !component.gameObject.activeInHierarchy);
             }
-            component?.gameObject.SetActive(false);
+            if (component != null)
+                component.gameObject.SetActive(false);
         }
 
         public int GetActiveSpawn()

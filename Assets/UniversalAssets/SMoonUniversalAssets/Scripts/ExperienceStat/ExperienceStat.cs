@@ -66,7 +66,6 @@ public class ExperienceStat
         int normalizedLevel = NormalizedLevel;
         int expRequire = ExpRequireOnLevel(normalizedLevel);
         int prevExpRequire = ExpRequireOnLevel(normalizedLevel - 1);
-        Debug.Log($"{exp}-{prevExpRequire}/{expRequire}-{prevExpRequire}");
         return (float)(exp - prevExpRequire) / (expRequire - prevExpRequire);
     }
 }
