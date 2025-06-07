@@ -59,7 +59,8 @@ public class ButtonView : TextViewBase, IPointerEnterHandler, IPointerExitHandle
     public void Clear()
     {
         action = null;
-        labelText.text = "";
+        secondaryTextFunc = null;
+        onHoverAction = null;
     }
 
     public void ChangeButtonColor(Color color)

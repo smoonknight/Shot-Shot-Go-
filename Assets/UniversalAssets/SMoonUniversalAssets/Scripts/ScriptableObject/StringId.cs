@@ -26,4 +26,7 @@ public enum StringId
     GameOver,
     Restart,
     Resurrect,
+    PostGameOverOptionsToolTipRestart,
+    PostGameOverOptionsToolTipRessurect,
+    PostGameOverOptionsToolTipMainMenu
 }

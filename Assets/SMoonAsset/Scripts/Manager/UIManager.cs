@@ -32,29 +32,19 @@ public class UIManager : Singleton<UIManager>
 
     [Space]
     [SerializeField]
-    private Button continueButton;
+    private TextMeshProUGUITranslator utilityTitleText;
     [SerializeField]
-    private Button settingsButton;
+    private ButtonView firstButtonView;
     [SerializeField]
-    private Button mainMenuButton;
+    private ButtonView secondButtonView;
     [SerializeField]
-    private Canvas pauseCanvas;
+    private ButtonView thirdButtonView;
     [SerializeField]
-    private CanvasGroup pauseCanvasGroup;
-
-    [Space]
+    private Canvas utilityCanvas;
     [SerializeField]
-    private ButtonView gameOverRestartButtonView;
+    private CanvasGroup utilityCanvasGroup;
     [SerializeField]
-    private ButtonView gameOverResurrectButtonView;
-    [SerializeField]
-    private ButtonView gameOverMainMenuButtonView;
-    [SerializeField]
-    private Canvas gameOverCanvas;
-    [SerializeField]
-    private CanvasGroup gameOverCanvasGroup;
-    [SerializeField]
-    private TextMeshProUGUI gameOverTooltipText;
+    private TextMeshProUGUI tooltipText;
 
     private List<HeartUIView> heartUIViews = new();
 
@@ -75,20 +65,6 @@ public class UIManager : Singleton<UIManager>
     {
         base.OnAwake();
         chooseUpgradeSpawner.Initialize();
-    }
-
-    private void OnEnable()
-    {
-        continueButton.onClick.AddListener(async () => await SetPause(false));
-        settingsButton.onClick.AddListener(() => SetSettings(true));
-        mainMenuButton.onClick.AddListener(() => TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Loading, SceneEnum.MAINMENU));
-    }
-
-    private void OnDisable()
-    {
-        continueButton.onClick.RemoveListener(async () => await SetPause(false));
-        settingsButton.onClick.RemoveListener(() => SetSettings(true));
-        mainMenuButton.onClick.RemoveListener(() => TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Loading, SceneEnum.MAINMENU));
     }
 
     public void InitializePlayer(PlayerController playerController)
@@ -304,16 +280,23 @@ public class UIManager : Singleton<UIManager>
             return;
         }
         isProcessingPause = true;
+
         if (condition)
         {
             IsPause = condition;
-            pauseCanvas.enabled = true;
-            await AnimationFadedInOut(pauseCanvasGroup, 0, 1, 0.4f);
+            utilityCanvas.enabled = true;
+
+            utilityTitleText.Translate(StringId.Pause);
+
+            firstButtonView.TryInitializeTranslator(StringId.Continue, async () => await SetPause(false));
+            secondButtonView.TryInitializeTranslator(StringId.Settings, () => SetSettings(true));
+            thirdButtonView.TryInitializeTranslator(StringId.MainMenu, () => TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Loading, SceneEnum.MAINMENU));
+            await AnimationFadedInOut(utilityCanvasGroup, 0, 1, 0.4f);
         }
         else
         {
-            await AnimationFadedInOut(pauseCanvasGroup, 1, 0, 0.4f);
-            pauseCanvas.enabled = false;
+            await AnimationFadedInOut(utilityCanvasGroup, 1, 0, 0.4f);
+            utilityCanvas.enabled = false;
             IsPause = condition;
         }
 
@@ -331,23 +314,53 @@ public class UIManager : Singleton<UIManager>
             return null;
         }
 
-        gameOverCanvas.enabled = true;
+        utilityCanvas.enabled = true;
         isProcessingGameOver = true;
 
         var tcs = new UniTaskCompletionSource<PostGameOverOptions>();
 
-        gameOverRestartButtonView.Initialize(() => tcs.TrySetResult(PostGameOverOptions.Restart));
-        gameOverResurrectButtonView.Initialize(() => tcs.TrySetResult(PostGameOverOptions.Resurrect));
-        gameOverMainMenuButtonView.Initialize(() => tcs.TrySetResult(PostGameOverOptions.MainMenu));
+        utilityTitleText.Translate(StringId.GameOver);
+
+        firstButtonView.TryInitializeTranslator(StringId.Restart, () => tcs.TrySetResult(PostGameOverOptions.Restart));
+        firstButtonView.SetHoverAction((position, condition) => SetToolTip(position, condition, StringId.PostGameOverOptionsToolTipRestart.ToCommonLanguage()));
+        secondButtonView.TryInitializeTranslator(StringId.Resurrect, () => tcs.TrySetResult(PostGameOverOptions.Resurrect));
+        firstButtonView.SetHoverAction((position, condition) => SetToolTip(position, condition, StringId.PostGameOverOptionsToolTipRessurect.ToCommonLanguage()));
+        thirdButtonView.TryInitializeTranslator(StringId.MainMenu, () => tcs.TrySetResult(PostGameOverOptions.MainMenu));
+        firstButtonView.SetHoverAction((position, condition) => SetToolTip(position, condition, StringId.PostGameOverOptionsToolTipMainMenu.ToCommonLanguage()));
 
         PostGameOverOptions postGameOverOptions = await tcs.Task;
 
-        await AnimationFadedInOut(gameOverCanvasGroup, 1, 0, 0.4f);
+        await AnimationFadedInOut(utilityCanvasGroup, 1, 0, 0.4f);
 
-        gameOverCanvas.enabled = false;
+        firstButtonView.Clear();
+        secondButtonView.Clear();
+        thirdButtonView.Clear();
+
+        utilityCanvas.enabled = false;
         isProcessingGameOver = false;
 
         return postGameOverOptions;
+    }
+
+    void SetToolTip(Vector2 screenPosition, bool condition, string text)
+    {
+        tooltipText.enabled = condition;
+        if (!condition)
+        {
+            return;
+        }
+
+        tooltipText.text = text;
+        RectTransform parentRect = tooltipText.rectTransform.parent as RectTransform;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            parentRect,
+            screenPosition,
+            null,
+            out Vector2 localPoint
+        );
+
+        tooltipText.rectTransform.anchoredPosition = localPoint;
     }
 
     public Sprite GetSpriteByType(UpgradeType type) => upgradeSpriteProperties.Find(find => find.type == type).sprite;
