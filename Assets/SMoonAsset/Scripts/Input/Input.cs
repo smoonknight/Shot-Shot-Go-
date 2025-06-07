@@ -26,6 +26,20 @@ public class Input : MonoBehaviour
 
     private void OnEnable()
     {
+        MoveAction.performed += OnMove;
+        FireAction.performed += OnFire;
+        RunAction.performed += OnRun;
+        JumpAction.performed += OnJump;
+        CrouchAction.started += OnCrouch;
+
+        MoveAction.canceled += OnMove;
+        FireAction.canceled += OnFire;
+        RunAction.canceled += OnRun;
+        JumpAction.canceled += OnJump;
+        CrouchAction.canceled += OnCrouch;
+
+        SwitchCursorAction.performed += SwitchCursor;
+
         EnhancedTouchSupport.Enable();
         _currentMap.Enable();
 
@@ -33,7 +47,21 @@ public class Input : MonoBehaviour
 
     private void OnDisable()
     {
-        EnhancedTouchSupport.Enable();
+        MoveAction.performed -= OnMove;
+        FireAction.performed -= OnFire;
+        RunAction.performed -= OnRun;
+        JumpAction.performed -= OnJump;
+        CrouchAction.started -= OnCrouch;
+
+        MoveAction.canceled -= OnMove;
+        FireAction.canceled -= OnFire;
+        RunAction.canceled -= OnRun;
+        JumpAction.canceled -= OnJump;
+        CrouchAction.canceled -= OnCrouch;
+
+        SwitchCursorAction.performed -= SwitchCursor;
+
+        EnhancedTouchSupport.Disable();
         _currentMap.Disable();
     }
 
@@ -49,20 +77,6 @@ public class Input : MonoBehaviour
         InteractAction = _currentMap.FindAction("Interact");
         SwitchCursorAction = _currentMap.FindAction("Switch Cursor");
         PauseAction = _currentMap.FindAction("Pause");
-
-        MoveAction.performed += OnMove;
-        FireAction.performed += OnFire;
-        RunAction.performed += OnRun;
-        JumpAction.performed += OnJump;
-        CrouchAction.started += OnCrouch;
-
-        MoveAction.canceled += OnMove;
-        FireAction.canceled += OnFire;
-        RunAction.canceled += OnRun;
-        JumpAction.canceled += OnJump;
-        CrouchAction.canceled += OnCrouch;
-
-        SwitchCursorAction.performed += SwitchCursor;
     }
 
     private void SwitchCursor(InputAction.CallbackContext context)

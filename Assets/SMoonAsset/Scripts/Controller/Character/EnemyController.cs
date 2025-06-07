@@ -227,6 +227,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         {
             GameModeType.Normal => throw new System.NotImplementedException(),
             GameModeType.Rogue => RogueManager.Instance.GetSampleSpawnPosition(),
+            GameModeType.MainMenu => transform.position - Vector3.right * 2,
             _ => throw new System.NotImplementedException(),
         };
     }
@@ -289,12 +290,10 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         holdingJump = false;
     }
 
-    public override async void OnZeroHealth()
+    public override void OnZeroHealth()
     {
-        CancellationToken cancellationToken = alphaCancellationTokenSource.ResetToken();
-        await LerpGeneric(1f, 0f, 0.5f, Mathf.Lerp, AlphaChange, cancellationToken);
-        GameplayManager.Instance.DropCollectable(this);
-        gameObject.SetActive(false);
+        if (enemyStateMachine.LatestType != EnemyStateType.Dead)
+            enemyStateMachine.SetState(EnemyStateType.Dead);
     }
 
     public override bool IsPlayer() => false;
@@ -339,6 +338,38 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
             return;
         }
         enemyStateMachine.SetState(EnemyStateType.Scouting);
+    }
+
+    private async void DeadEnter()
+    {
+        CancellationToken cancellationToken = alphaCancellationTokenSource.ResetToken();
+        await LerpGeneric(1f, 0f, 0.5f, Mathf.Lerp, AlphaChange, cancellationToken);
+        GameplayManager.Instance.DropCollectable(this);
+        gameObject.SetActive(false);
+    }
+
+    public class DeadState : BaseState<EnemyController>
+    {
+        public DeadState(EnemyController component) : base(component)
+        {
+        }
+
+        public override void EnterState()
+        {
+            component.DeadEnter();
+        }
+
+        public override void FixedUpdateState()
+        {
+        }
+
+        public override void LeaveState()
+        {
+        }
+
+        public override void UpdateState()
+        {
+        }
     }
     public class TargetLockState : BaseState<EnemyController>
     {
@@ -436,16 +467,19 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
     {
         private ScoutingState scoutingState;
         private TargetLockState targetLockState;
+        private DeadState deadState;
         protected override void InitializeState(EnemyController component)
         {
             scoutingState = new(component);
             targetLockState = new(component);
+            deadState = new(component);
         }
 
         protected override BaseState<EnemyController> GetState(EnemyStateType type) => type switch
         {
             EnemyStateType.Scouting => scoutingState,
             EnemyStateType.TargetLock => targetLockState,
+            EnemyStateType.Dead => deadState,
             _ => throw new System.NotImplementedException(),
         };
     }
@@ -453,7 +487,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
 
 public enum EnemyStateType
 {
-    Scouting, TargetLock,
+    Scouting, TargetLock, Dead
 }
 
 public enum EnemyType

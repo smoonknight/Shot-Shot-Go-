@@ -10,9 +10,15 @@ public class TransitionManager : SingletonWithDontDestroyOnLoad<TransitionManage
     public TransitionSpawner transitionSpawner;
 
     TransitionType lastTransitionType;
-    SceneEnum lastSceneManagerEnum;
+    SceneEnum latestSceneEnum;
 
     public bool isOnProgressTransitionScene { get; private set; }
+
+    protected override void OnAwake()
+    {
+        base.OnAwake();
+        transitionSpawner.Initialize();
+    }
 
     private void Start()
     {
@@ -41,16 +47,17 @@ public class TransitionManager : SingletonWithDontDestroyOnLoad<TransitionManage
                 LeanTween.value(1, 0, 0.5f).setOnUpdate(transitionController.Change).setEaseInExpo().setOnComplete(() =>
                 {
                     endTransitionCallback?.Invoke();
-                });
+                    transitionController.gameObject.SetActive(false);
+                }).setIgnoreTimeScale(true);
             });
         });
     }
 
-    public void SetTransitionOnSceneManagerPrevious() => SetTransitionOnSceneManager(lastTransitionType, lastSceneManagerEnum);
+    public void SetTransitionOnSceneManagerPrevious() => SetTransitionOnSceneManager(lastTransitionType, latestSceneEnum);
     public void SetTransitionOnSceneManager(TransitionType type, SceneEnum sceneManagerEnum) => SetTransitionOnSceneManager(type, sceneManagerEnum, () => { }, () => { });
     public void SetTransitionOnSceneManager(TransitionType type, SceneEnum sceneEnum, UnityAction midTransitionCallback, UnityAction endTransitionCallback)
     {
-        lastSceneManagerEnum = sceneEnum;
+        latestSceneEnum = sceneEnum;
         isOnProgressTransitionScene = true;
 
         lastTransitionType = type;
@@ -72,13 +79,13 @@ public class TransitionManager : SingletonWithDontDestroyOnLoad<TransitionManage
 
         SceneHelper.CheckSceneRequire(sceneEnum);
 
-        Screen.sleepTimeout = lastSceneManagerEnum != SceneEnum.MAINMENU ? SleepTimeout.NeverSleep : SleepTimeout.SystemSetting;
+        Screen.sleepTimeout = sceneEnum != SceneEnum.MAINMENU ? SleepTimeout.NeverSleep : SleepTimeout.SystemSetting;
 
         operationAsync.completed += (async) =>
         {
-            LeanTween.value(1, 0, 0.5f).setOnUpdate(transitionController.Change).setEaseInExpo();
+            LeanTween.value(1, 0, 0.5f).setOnUpdate(transitionController.Change).setEaseInExpo().setIgnoreTimeScale(true);
             endTransitionCallback?.Invoke();
-            Destroy(transitionController.gameObject);
+            transitionController.gameObject.SetActive(false);
         };
         await UniTask.WaitUntil(() => operationAsync.isDone);
     }

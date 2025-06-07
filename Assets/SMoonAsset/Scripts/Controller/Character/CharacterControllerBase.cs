@@ -63,6 +63,8 @@ public abstract class CharacterControllerBase : MonoBehaviour
 
     protected List<SpriteRenderer> spriteRenderers = new();
 
+    public int Health { get; protected set; }
+
     float currentVelocityX;
 
     int moveHash;
@@ -93,7 +95,7 @@ public abstract class CharacterControllerBase : MonoBehaviour
     [ReadOnly]
     protected bool enableDoubleJump;
 
-    public bool IsDead { protected set; get; }
+    public bool IsDead => Health < 0;
 
     protected const float inertiaRate = 5f;
     const float accelerationSmoothRate = 0.1f;
@@ -114,8 +116,6 @@ public abstract class CharacterControllerBase : MonoBehaviour
 
     protected virtual void Awake()
     {
-        rigidBody.GetComponent<Rigidbody2D>();
-
         moveHash = Animator.StringToHash("Move");
 
         isJumpHash = Animator.StringToHash("Is Jump");
@@ -150,6 +150,8 @@ public abstract class CharacterControllerBase : MonoBehaviour
     {
         float targetVelocityX = GetMoveTargetDirectionX() * moveSpeed;
         float newVelocityX = Mathf.SmoothDamp(rigidBody.linearVelocityX, targetVelocityX, ref currentVelocityX, accelerationSmoothRate);
+
+        newVelocityX = float.IsNaN(newVelocityX) ? 0 : newVelocityX;
 
         rigidBody.linearVelocity = new Vector2(newVelocityX, rigidBody.linearVelocityY);
         SetDirection(targetVelocityX);
@@ -194,14 +196,23 @@ public abstract class CharacterControllerBase : MonoBehaviour
 
         float targetScaleX = isRightDirection ? horizontalScale : horizontalScale * -1;
         Vector2 scale;
-        while (time < changeDirectionTime && !cancellationToken.IsCancellationRequested)
+        while (time < changeDirectionTime)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
             float percentage = time / changeDirectionTime;
             scale = transform.localScale;
             scale.x = Mathf.Lerp(latestScaleX, targetScaleX, percentage);
             transform.localScale = scale;
             time += Time.deltaTime;
             await UniTask.Yield();
+        }
+
+        if (transform == null)
+        {
+            return;
         }
 
         scale = transform.localScale;

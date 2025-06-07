@@ -15,6 +15,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
     private BoxCollider2D boxCollider2D;
     private Rigidbody2D rigidBody2D;
 
+    [SerializeField]
     MagicSwordStateMachine magicSwordStateMachine;
 
     const float detectionRange = 15;
@@ -90,6 +91,11 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         magicSwordStateMachine.CurrentState.UpdateState();
     }
 
+    private void FixedUpdate()
+    {
+        magicSwordStateMachine.CurrentState.FixedUpdateState();
+    }
+
     public void Reinitialize(MagicSwordItem itemBase)
     {
         SetItemBase(itemBase);
@@ -126,7 +132,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
     private UnityAction GetAttackTask(MagicSwordItemType type) => type switch
     {
         MagicSwordItemType.Common => OnMasterDirection,
-        MagicSwordItemType.OnTarget => () => AttackDetectionTarget(OnTargetAttack, ResetScale),
+        MagicSwordItemType.OnTarget => () => AttackDetectionTarget(OnTargetAttack, ResetPositionRandomizeAndScale),
         MagicSwordItemType.Slashing => () => AttackDetectionTarget(SlasherAttack, ResetPositionRandomizeAndScale),
         _ => throw new NotImplementedException(),
     };
@@ -300,7 +306,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
         transform.rotation = Quaternion.identity;
         time = 0f;
 
-        float scaleDuration = 1f;
+        float scaleDuration = 0.7f;
         while (time < scaleDuration)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -367,6 +373,22 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
     {
         rigidBody2D.bodyType = RigidbodyType2D.Dynamic;
         boxCollider2D.isTrigger = false;
+        isAttacking = false;
+    }
+
+    private void DeactiveUpdate()
+    {
+        if (!playableCharacter.IsDead)
+        {
+            magicSwordStateMachine.SetState(MagicSwordStateType.Active);
+        }
+    }
+
+    private void DeactiveLeave()
+    {
+        rigidBody2D.bodyType = RigidbodyType2D.Static;
+        boxCollider2D.isTrigger = true;
+        isAttacking = false;
     }
 
     public class DeactiveState : BaseState<MagicSwordItemController>
@@ -386,10 +408,12 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
         public override void LeaveState()
         {
+            component.DeactiveLeave();
         }
 
         public override void UpdateState()
         {
+            component.DeactiveUpdate();
         }
     }
     #endregion
@@ -405,7 +429,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
     {
         if (playableCharacter.IsDead)
         {
-            magicSwordStateMachine.SetStateWhenDifference(MagicSwordStateType.Deactive);
+            magicSwordStateMachine.SetState(MagicSwordStateType.Deactive);
             return;
         }
 
@@ -444,6 +468,7 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
     }
     #endregion
 
+    [Serializable]
     public class MagicSwordStateMachine : EnumStateMachine<MagicSwordItemController, MagicSwordStateType>
     {
         ActiveState activeState;

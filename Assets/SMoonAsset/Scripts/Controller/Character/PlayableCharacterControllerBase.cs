@@ -30,10 +30,10 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     const int HeartRate = 10;
 
-    public int Health { get; protected set; }
     public int MaximumHealth => characterStatProperty.health;
 
     private CancellationTokenSource immuneCancellationTokenSource;
+    private bool hasOnZeroHealth;
 
     protected override void Awake()
     {
@@ -54,7 +54,7 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     public virtual void SetupPlayable()
     {
-        IsDead = false;
+        hasOnZeroHealth = false;
         ColorChange(Color.white);
         AlphaChange(1);
         magicSwordTypeStatPropertyCollector.SetTypeUpgradeProperties(GameManager.Instance.GetCopyOfDefaultMagicSwordTypeUpgradeProperties());
@@ -300,9 +300,8 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     public virtual void TakeDamage(int damage)
     {
         Health -= damage;
-        if (Health <= 0 && !IsDead)
+        if (IsDead)
         {
-            IsDead = true;
             OnZeroHealth();
         }
         else

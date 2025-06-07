@@ -7,12 +7,6 @@ public partial class GameManager : SingletonWithDontDestroyOnLoad<GameManager>
 {
     public DefaultDataScriptableObject defaultItem;
 
-    protected override void OnAwake()
-    {
-        base.OnAwake();
-        LanguageManager.Instance.SetLanguages(LanguageType.Indonesia);
-    }
-
     public DefaultItem<MagicSwordItem> GetDefaultItem(MagicSwordItemType type) => defaultItem.magicSwordDefaultItems.Find(match => match.itemBase.type == type);
     public Sprite GetDefaultItemSprite(MagicSwordItemType type) => GetDefaultItem(type).sprite;
 
@@ -24,5 +18,5 @@ public partial class GameManager : SingletonWithDontDestroyOnLoad<GameManager>
 
 public enum GameModeType
 {
-    Normal, Rogue,
+    Normal, Rogue, MainMenu
 }

@@ -5,9 +5,10 @@ public class StateMachine<T> where T : Component
 {
     public BaseState<T> CurrentState { private set; get; }
 
-    public void SetState(BaseState<T> newState)
+    public void SetState(BaseState<T> newState, bool dontCallLeave = false)
     {
-        CurrentState?.LeaveState();
+        if (!dontCallLeave)
+            CurrentState?.LeaveState();
         CurrentState = newState;
         CurrentState?.EnterState();
     }

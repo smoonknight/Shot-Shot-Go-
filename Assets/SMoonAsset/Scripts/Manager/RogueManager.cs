@@ -4,6 +4,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using SMoonUniversalAsset;
 using UnityEngine;
+using UniTaskExtensions = SMoonUniversalAsset.UniTaskExtensions;
 
 public class RogueManager : Singleton<RogueManager>
 {
@@ -48,7 +49,6 @@ public class RogueManager : Singleton<RogueManager>
 
     int currentLevel = 1;
 
-
     Dictionary<int, AudioName> countdownSFX = new()
     {
         { 3, AudioName.SFX_THREE },
@@ -69,14 +69,7 @@ public class RogueManager : Singleton<RogueManager>
         EnvironmentAwake();
     }
 
-    private void OnEnable()
-    {
-        cancellationTokenSource?.Cancel();
-        cancellationTokenSource = new();
-        EnvironmentUpdate(cancellationTokenSource.Token);
-    }
-
-    private void OnDisable()
+    private void OnDestroy()
     {
         cancellationTokenSource?.Cancel();
     }
@@ -108,6 +101,7 @@ public class RogueManager : Singleton<RogueManager>
     {
         SetupEnvironmentProperties();
         SetRandomEnvironment();
+
     }
 
     public void EnvironmentStop()
@@ -132,12 +126,24 @@ public class RogueManager : Singleton<RogueManager>
         }
     }
 
+    public void EnvironmentUpdate()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource = new();
+        EnvironmentUpdate(cancellationTokenSource.Token);
+    }
+
     private async void EnvironmentUpdate(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
             float changeDuration = Random.Range(minimumEnvironmentChangeDuration, maximumEnvironmentChangeDuration);
-            await UniTask.WaitForSeconds(changeDuration);
+            await UniTaskExtensions.DelayWithCancel(changeDuration, cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
 
             var nextProperties = environmentProperties.GetRandomWithExcept(currentEnvironmentProperty);
 
@@ -172,11 +178,14 @@ public class RogueManager : Singleton<RogueManager>
                 ctrl.tilemapCollider2D.enabled = false;
             }
 
-            // Transisi
             played.Clear();
             float time = 0f;
             while (time < transitionEnvironmentChangeDuration)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
                 float value = Mathf.PingPong(time, 1f);
                 float inverse = 1f - value;
 

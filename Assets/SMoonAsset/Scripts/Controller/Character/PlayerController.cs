@@ -16,6 +16,8 @@ public class PlayerController : PlayableCharacterControllerBase
 
     [SerializeField]
     private AudioClip deadAudioClip;
+    [SerializeField]
+    private Canvas onScreenCanvas;
     private Input input;
 
     public PlayerStateMachine playerStateMachine { get; private set; }
@@ -30,6 +32,10 @@ public class PlayerController : PlayableCharacterControllerBase
 
     bool isWallHanging;
 
+    private void OnDestroy()
+    {
+        playerStateMachine = null;
+    }
     protected override void Awake()
     {
         base.Awake();
@@ -39,22 +45,22 @@ public class PlayerController : PlayableCharacterControllerBase
         playerStateMachine.Initialize(this, PlayerStateType.Play);
 
         UIManager.Instance.InitializePlayer(this);
+
+        onScreenCanvas.enabled = Application.platform == RuntimePlatform.Android;
     }
 
     protected override void OnEnable()
     {
         base.OnEnable();
         input.JumpAction.performed += JumpActionPerformed;
-        input.PauseAction.performed += (ctx) => ValidatePause();
-        EnhancedTouchSupport.Enable();
+        input.PauseAction.performed += ValidatePause;
     }
 
     protected override void OnDisable()
     {
         base.OnDisable();
         input.JumpAction.performed -= JumpActionPerformed;
-        input.PauseAction.performed -= (ctx) => ValidatePause();
-        EnhancedTouchSupport.Disable();
+        input.PauseAction.performed -= ValidatePause;
     }
 
     private void Update()
@@ -105,9 +111,9 @@ public class PlayerController : PlayableCharacterControllerBase
         return false;
     }
 
-    private void ValidatePause()
+    private void ValidatePause(InputAction.CallbackContext context)
     {
-        if (isExecuteUpgradeStat || IsDead)
+        if (isExecuteUpgradeStat || playerStateMachine.LatestType != PlayerStateType.Play)
             return;
         GameplayManager.Instance.RaisePause(this);
     }
@@ -209,7 +215,8 @@ public class PlayerController : PlayableCharacterControllerBase
 
     public override void OnZeroHealth()
     {
-        playerStateMachine.SetStateWhenDifference(PlayerStateType.Dead);
+        if (playerStateMachine.LatestType == PlayerStateType.Play)
+            playerStateMachine.SetState(PlayerStateType.Dead);
     }
 
     public override void TakeDamage(int damage)
@@ -286,7 +293,7 @@ public class PlayerController : PlayableCharacterControllerBase
 
     private const float waitingToGameOverDuration = 2;
     TimeChecker waitingToGameOverTimeChecker = new();
-
+    bool isWaitingRaiseGameOver;
     private void DeadEnter()
     {
         rigidBody.linearVelocity = Vector2.zero;
@@ -295,6 +302,8 @@ public class PlayerController : PlayableCharacterControllerBase
         audioSource.clip = deadAudioClip;
         audioSource.Play();
 
+        isWaitingRaiseGameOver = true;
+
         AudioExtendedManager.Instance.SetMusic(GameplayManager.Instance.endMusicName, false);
 
         UpdateDeadAnimation(true);
@@ -302,17 +311,41 @@ public class PlayerController : PlayableCharacterControllerBase
 
     private void DeadFixedUpdate()
     {
-        if (!waitingToGameOverTimeChecker.IsDurationEnd())
+        if (!isWaitingRaiseGameOver || !waitingToGameOverTimeChecker.IsDurationEnd())
         {
             return;
         }
 
+        isWaitingRaiseGameOver = false;
         GameplayManager.Instance.RaiseGameOver(this);
     }
 
     private void DeadLeave()
     {
         UpdateDeadAnimation(false);
+    }
+
+    public class NoneState : BaseState<PlayerController>
+    {
+        public NoneState(PlayerController component) : base(component)
+        {
+        }
+
+        public override void EnterState()
+        {
+        }
+
+        public override void FixedUpdateState()
+        {
+        }
+
+        public override void LeaveState()
+        {
+        }
+
+        public override void UpdateState()
+        {
+        }
     }
 
     public class DeadState : BaseState<PlayerController>
@@ -349,7 +382,6 @@ public class PlayerController : PlayableCharacterControllerBase
     {
         enableMove = true;
         enableDoubleJump = true;
-        IsDead = false;
         rigidBody.constraints = RigidbodyConstraints2D.FreezeRotation;
     }
 
@@ -460,6 +492,7 @@ public class PlayerController : PlayableCharacterControllerBase
         private PlayState playState;
         private DeadState deadState;
         private PauseState pauseState;
+        private NoneState noneState;
 
         protected override void InitializeState(PlayerController playerController)
         {
@@ -467,6 +500,7 @@ public class PlayerController : PlayableCharacterControllerBase
             playState = new(playerController);
             deadState = new(playerController);
             pauseState = new(playerController);
+            noneState = new(playerController);
         }
 
         protected override BaseState<PlayerController> GetState(PlayerStateType type) => type switch
@@ -475,6 +509,7 @@ public class PlayerController : PlayableCharacterControllerBase
             PlayerStateType.Play => playState,
             PlayerStateType.Dead => deadState,
             PlayerStateType.Pause => pauseState,
+            PlayerStateType.None => noneState,
             _ => throw new System.NotImplementedException(),
         };
     }
@@ -483,5 +518,5 @@ public class PlayerController : PlayableCharacterControllerBase
 
 public enum PlayerStateType
 {
-    Cutscene, Play, Dead, Pause
+    Cutscene, Play, Dead, Pause, None
 }

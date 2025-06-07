@@ -28,5 +28,14 @@ public enum StringId
     Resurrect,
     PostGameOverOptionsToolTipRestart,
     PostGameOverOptionsToolTipRessurect,
-    PostGameOverOptionsToolTipMainMenu
+    PostGameOverOptionsToolTipMainMenu,
+    SFX,
+    BGM,
+    Langauge,
+    Quality,
+    TargetFPS,
+    TapToClose,
+    Reset,
+    Start,
+    Exit
 }

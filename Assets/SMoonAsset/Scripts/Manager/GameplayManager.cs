@@ -18,8 +18,14 @@ public class GameplayManager : Singleton<GameplayManager>
     protected override void OnAwake()
     {
         base.OnAwake();
-        collectableTypeRateCollector.Calculate();
-        SetPlayerByGameMode(currentGameModeType);
+        if (currentGameModeType != GameModeType.MainMenu)
+        {
+            collectableTypeRateCollector.Calculate();
+            SetPlayerByGameMode(currentGameModeType);
+        }
+
+        SetGameMode(currentGameModeType);
+
         AudioExtendedManager.Instance.SetMusic(musicName);
     }
 
@@ -36,12 +42,22 @@ public class GameplayManager : Singleton<GameplayManager>
         cinemachineVirtualCamera.Follow = playerController.transform;
     }
 
+    void SetGameMode(GameModeType type)
+    {
+        switch (type)
+        {
+            case GameModeType.Rogue: RogueManager.Instance.EnvironmentUpdate(); break;
+            case GameModeType.MainMenu: MainMenuManager.Instance.AddEnemys(cinemachineVirtualCamera); break;
+        }
+    }
+
     public Vector3 GetOutOfBoundByGameMode()
     {
         return currentGameModeType switch
         {
             GameModeType.Normal => LevelManager.Instance.latestCheckpoint,
             GameModeType.Rogue => RogueManager.Instance.GetSampleSpawnPosition(),
+            GameModeType.MainMenu => Vector3.zero,
             _ => throw new NotImplementedException(),
         };
     }
@@ -91,19 +107,22 @@ public class GameplayManager : Singleton<GameplayManager>
         playerController.playerStateMachine.SetStateWhenDifference(PlayerStateType.Pause);
         await UIManager.Instance.SetPause(true);
         await UniTask.WaitUntil(() => !UIManager.Instance.IsPause);
-        playerController.playerStateMachine.SetPrevState(PlayerStateType.Play);
+        if (playerController != null)
+            playerController.playerStateMachine.SetPrevState(PlayerStateType.Play);
     }
 
     public async void RaiseGameOver(PlayerController playerController)
     {
-        playerController.playerStateMachine.SetStateWhenDifference(PlayerStateType.Pause);
         PostGameOverOptions? postGameOverOptions = await UIManager.Instance.SetGameOver();
-
 
         switch (postGameOverOptions)
         {
             case PostGameOverOptions.Restart: TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Black, GetSceneEnumByGameMode()); break;
-            case PostGameOverOptions.Resurrect: playerController.playerStateMachine.SetState(PlayerStateType.Play); AudioExtendedManager.Instance.SetMusic(musicName); break;
+            case PostGameOverOptions.Resurrect:
+                playerController.AddHealth(playerController.MaximumHealth);
+                playerController.playerStateMachine.SetState(PlayerStateType.Play);
+                AudioExtendedManager.Instance.SetMusic(musicName);
+                break;
             case PostGameOverOptions.MainMenu: TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Loading, GetSceneEnumByGameMode()); break;
         }
     }

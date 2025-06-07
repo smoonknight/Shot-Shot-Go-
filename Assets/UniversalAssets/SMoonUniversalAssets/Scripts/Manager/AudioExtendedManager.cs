@@ -422,6 +422,7 @@ public enum AudioName
     SFX_THREE,
     SFX_TWO,
     SFX_ONE,
+    SFX_FANFARE
 }
 
 public enum MusicName

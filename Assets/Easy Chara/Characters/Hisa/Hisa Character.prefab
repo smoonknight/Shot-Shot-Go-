@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4806197416565840443}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LShoes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -32,6 +32,68 @@ Transform:
   - {fileID: 6550761235546795890}
   m_Father: {fileID: 6550761235875199946}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5595999942905432359
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8213366707223117974}
+  m_Layer: 20
+  m_Name: Magnetic Body
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8213366707223117974
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5595999942905432359}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.64, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6550761235523395908}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5677079863242981948
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1143131033436624462}
+  m_Layer: 20
+  m_Name: Ground Check
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1143131033436624462
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5677079863242981948}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.003000006, y: 0.010999978, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6550761235523395908}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6550761233853193377
 GameObject:
   m_ObjectHideFlags: 0
@@ -41,7 +103,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761233853193376}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Eye_Hurt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -75,8 +137,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761233886518970}
   - component: {fileID: 6550761233886518968}
-  - component: {fileID: 6550761233886518969}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LEye_Open
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -92,7 +153,7 @@ Transform:
   m_GameObject: {fileID: 6550761233886518971}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.7142843, w: 0.69985574}
-  m_LocalPosition: {x: 1.3518574, y: -1.4930977, z: 0}
+  m_LocalPosition: {x: 1.351857, y: -1.493098, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -141,7 +202,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 111
+  m_SortingOrder: 8
   m_Sprite: {fileID: 21300000, guid: 212d3580e7830914895fd76bf1f16f76, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -153,25 +214,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &6550761233886518969
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6550761233886518971}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57c008f954fe54a8bb972de1018a2cb8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_RootBone: {fileID: 0}
-  m_BoneTransforms: []
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_AlwaysUpdate: 1
-  m_AutoRebind: 0
 --- !u!1 &6550761233895150578
 GameObject:
   m_ObjectHideFlags: 0
@@ -183,7 +225,7 @@ GameObject:
   - component: {fileID: 6550761233895150577}
   - component: {fileID: 6550761233895150583}
   - component: {fileID: 6550761233895150576}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: RArm_Default_01_Gra
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -249,7 +291,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 130
+  m_SortingOrder: 14
   m_Sprite: {fileID: 21300000, guid: 550b2c97f8c03c44fb975a11d5e1cbe1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -293,7 +335,7 @@ GameObject:
   - component: {fileID: 6550761233899429359}
   - component: {fileID: 6550761233899429357}
   - component: {fileID: 6550761233899429358}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LHand_Default_Gra_Open
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -359,7 +401,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 81
+  m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: 9f4d05368103baa49b8ab3437de21523, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -401,7 +443,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761233919814831}
   - component: {fileID: 6550761233919814830}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LEye_Closed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -466,7 +508,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 111
+  m_SortingOrder: 8
   m_Sprite: {fileID: 21300000, guid: 590bb0d0234eb5c4b9ca12ef30c45289, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -488,7 +530,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761233920239414}
   - component: {fileID: 6550761233920239413}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LBackHair_Default_Hisa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -553,7 +595,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 78
+  m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: a1aeb89e33a42b444abd0206c7eaf1c2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -575,7 +617,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761233988103778}
   - component: {fileID: 6550761233988103777}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: REye_Dead
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -640,7 +682,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 111
+  m_SortingOrder: 8
   m_Sprite: {fileID: 21300000, guid: 058ffc26b4fed344f92c6e50aa59e20e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -661,7 +703,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234008680272}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Handband
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -693,7 +735,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234174782556}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig1_Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -728,7 +770,7 @@ GameObject:
   - component: {fileID: 6550761234181432569}
   - component: {fileID: 6550761234181432575}
   - component: {fileID: 6550761234181432568}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: RLeg_Default_01_Gra
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -794,7 +836,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 120
+  m_SortingOrder: 12
   m_Sprite: {fileID: 21300000, guid: fd50071401d15ad4ba941890907cf9a0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -836,7 +878,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234225016091}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Hair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -871,7 +913,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761234239617621}
   - component: {fileID: 6550761234239617620}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Shoes_Default_L01_Hisa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -936,7 +978,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 125
+  m_SortingOrder: 13
   m_Sprite: {fileID: 21300000, guid: af4e62dad1aca9f43b78913b8a0bd9f3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -957,7 +999,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234265982556}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig1_LArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -989,7 +1031,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234317492121}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig2_LArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1022,7 +1064,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234381430310}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Eye_Dizzy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1056,7 +1098,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761234500379013}
   - component: {fileID: 6550761234500379012}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LEye_Hurt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1121,7 +1163,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 111
+  m_SortingOrder: 8
   m_Sprite: {fileID: 21300000, guid: 17e5d18e42b82ad4782f0a2ec5916a6d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1143,7 +1185,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761234556178230}
   - component: {fileID: 6550761234556178229}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LEye_Dead
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1208,7 +1250,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 111
+  m_SortingOrder: 8
   m_Sprite: {fileID: 21300000, guid: 058ffc26b4fed344f92c6e50aa59e20e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1229,7 +1271,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234557008248}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig1_RArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1263,7 +1305,7 @@ GameObject:
   - component: {fileID: 6550761234582043067}
   - component: {fileID: 6550761234582043065}
   - component: {fileID: 6550761234582043066}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Head_Default_01_Gra
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1329,7 +1371,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 110
+  m_SortingOrder: 7
   m_Sprite: {fileID: 21300000, guid: 4460dd67ddcb4f744a6aa16f5105fa6d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1370,7 +1412,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234593413718}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig1_Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1405,7 +1447,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761234608482108}
   - component: {fileID: 6550761234608482051}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: REye_Closed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1470,7 +1512,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 111
+  m_SortingOrder: 8
   m_Sprite: {fileID: 21300000, guid: 590bb0d0234eb5c4b9ca12ef30c45289, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1491,7 +1533,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234620233251}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig2_Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1526,7 +1568,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761234678386296}
   - component: {fileID: 6550761234678386303}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: RBackHair_Default_Hisa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1591,7 +1633,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 112
+  m_SortingOrder: 9
   m_Sprite: {fileID: 21300000, guid: 509a114b9216df544b82bd7d3a11ee44, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1612,7 +1654,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234702500935}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig1_LLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1644,7 +1686,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234751394393}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Hairpin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1676,7 +1718,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234758711580}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Acc
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1710,7 +1752,7 @@ GameObject:
   - component: {fileID: 6550761234824477150}
   - component: {fileID: 6550761234824477148}
   - component: {fileID: 6550761234824477149}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Body_Default_01_Gra
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1726,9 +1768,9 @@ Transform:
   m_GameObject: {fileID: 6550761234824477151}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.08, y: -1.47, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: -0.003, y: 0.46, z: 0}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6550761234593413718}
   m_Father: {fileID: 6550761235523395908}
@@ -1776,7 +1818,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 100
+  m_SortingOrder: 6
   m_Sprite: {fileID: 21300000, guid: 7e90b0d1814c2564bbfb03ae68497003, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1820,7 +1862,7 @@ GameObject:
   - component: {fileID: 6550761234898366363}
   - component: {fileID: 6550761234898366361}
   - component: {fileID: 6550761234898366362}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: RHand_Default_Gra_Open
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1886,7 +1928,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 131
+  m_SortingOrder: 15
   m_Sprite: {fileID: 21300000, guid: 284a38319c0c2b042b91e6bbb939d688, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1927,7 +1969,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234926659828}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Eyes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1963,7 +2005,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761234978223661}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Acc
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1995,7 +2037,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235013283179}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig2_RArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2027,7 +2069,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235018104803}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Eye_Closed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2060,7 +2102,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235077342016}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Eye_Open
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2093,7 +2135,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235132964148}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Eye_Dead
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2126,7 +2168,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235157947731}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig2_RLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2160,7 +2202,7 @@ GameObject:
   - component: {fileID: 6550761235166168104}
   - component: {fileID: 6550761235166168110}
   - component: {fileID: 6550761235166168111}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LArm_Default_01_Gra
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2226,7 +2268,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 80
+  m_SortingOrder: 1
   m_Sprite: {fileID: 21300000, guid: 5de332404b1761c439efeeffe0ed1fbd, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -2269,7 +2311,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761235346483939}
   - component: {fileID: 6550761235346483938}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Handband_Hisa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2334,7 +2376,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 82
+  m_SortingOrder: 3
   m_Sprite: {fileID: 21300000, guid: 8caaaf2d60e062c42a6cb848b053a22b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -2356,7 +2398,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761235363458079}
   - component: {fileID: 6550761235363458078}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: FrontHair_Default_Hisa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2421,7 +2463,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 113
+  m_SortingOrder: 10
   m_Sprite: {fileID: 21300000, guid: a06f12736e09b734d822a1bb989f7f07, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -2442,7 +2484,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235364829295}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig2_LLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2474,7 +2516,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235464879770}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig1_LHand_Open
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2506,7 +2548,13 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761235523395908}
   - component: {fileID: 6550761235523395915}
-  m_Layer: 0
+  - component: {fileID: 8212317076227537555}
+  - component: {fileID: 5269004213518203835}
+  - component: {fileID: 4870337118720912653}
+  - component: {fileID: 1942598779343227786}
+  - component: {fileID: 6012321060687489856}
+  - component: {fileID: 6367727236616500917}
+  m_Layer: 20
   m_Name: Hisa Character
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2521,12 +2569,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6550761235523395909}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6550761234824477150}
+  - {fileID: 1143131033436624462}
+  - {fileID: 8213366707223117974}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &6550761235523395915
@@ -2539,7 +2589,7 @@ Animator:
   m_GameObject: {fileID: 6550761235523395909}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 9286182970fc6754caf770ec58b19529, type: 2}
+  m_Controller: {fileID: 9100000, guid: fed530fc39516584faba42d656a030c4, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -2551,6 +2601,279 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8212317076227537555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6550761235523395909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b922624e98116434cbd44e3f13bacc01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerInput: {fileID: 5269004213518203835}
+--- !u!114 &5269004213518203835
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6550761235523395909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: dde864fc36454b244b37c2ba8855a40a, type: 3}
+  m_NotificationBehavior: 3
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Player
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
+--- !u!50 &4870337118720912653
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6550761235523395909}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 6200000, guid: b589a227ed339da48bd8b21c62d32764, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 1
+  m_SleepingMode: 1
+  m_CollisionDetection: 1
+  m_Constraints: 4
+--- !u!70 &1942598779343227786
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6550761235523395909}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 6200000, guid: b589a227ed339da48bd8b21c62d32764, type: 2}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: -0.009000033, y: 0.79814506}
+  m_Size: {x: 0.41794997, y: 1.5886917}
+  m_Direction: 0
+--- !u!114 &6012321060687489856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6550761235523395909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0118f53f6b48b7e44b41b5ac9224a18d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 12
+  acceleration: 10
+  deceleration: 10
+  jumpForce: 8
+  coyoteTime: 0.6
+  jumpBufferTime: 0.45
+  fallMultiplier: 1
+  lowJumpMultiplier: 2
+  groundCheck: {fileID: 1143131033436624462}
+  groundRadius: 0.2
+  rigidBody: {fileID: 4870337118720912653}
+  animator: {fileID: 6550761235523395915}
+  wallCheckDistance: 0.5
+  wallJumpForce: 8
+  characterCollider: {fileID: 1942598779343227786}
+  audioSource: {fileID: 6367727236616500917}
+  jumpClipSamples:
+    audioClips:
+    - {fileID: 8300000, guid: 93f38059bc4bb074d8f202e0ed44d3bf, type: 3}
+    - {fileID: 8300000, guid: bd2e2810d379bfb4dafbe79e85108604, type: 3}
+    - {fileID: 8300000, guid: fa872b1b55733524693883fcd4800b51, type: 3}
+    currentIndex: 0
+  isFacingRight: 1
+  enableMove: 1
+  enableDoubleJump: 0
+  initialMagicSwordProperties:
+  - type: 0
+    amount: 1
+  characterStatProperty:
+    size: 0
+    attackInterval: 0
+    speed: 0
+    health: 0
+    damage: 0
+    jump: 0
+    exp: 0
+  magicSwordTypeStatPropertyCollector:
+    typeUpgradeProperties: []
+  damagedAudioClipSamples:
+    audioClips:
+    - {fileID: 8300000, guid: 2065ced6d7a3db74b87569256fadfab9, type: 3}
+    - {fileID: 8300000, guid: c5b189808fd6f1f4291b35805012a276, type: 3}
+    - {fileID: 8300000, guid: f0fdbfcbdfdf0be4b8ccb7417342d09e, type: 3}
+    currentIndex: 0
+  attackAudioClipSamples:
+    audioClips:
+    - {fileID: 8300000, guid: 4bab040464d23984d9b1b69e3a4ce042, type: 3}
+    - {fileID: 8300000, guid: f9e83f37cc6c3934a8cdcdae8bae91c3, type: 3}
+    - {fileID: 8300000, guid: c2f7aa5770eb66d48a1d984298737329, type: 3}
+    currentIndex: 0
+  experienceStat:
+    exp: 0
+    startLevel: 1
+    maximumLevel: 99
+    factor: 50
+  magneticBody: {fileID: 8213366707223117974}
+  deadAudioClip: {fileID: 8300000, guid: 944de16c7915edd428a3813ddbb7bb00, type: 3}
+--- !u!82 &6367727236616500917
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6550761235523395909}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 344787220182777971, guid: a08a9e2f9d213b246911d6ef029cf427, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &6550761235546795891
 GameObject:
   m_ObjectHideFlags: 0
@@ -2561,7 +2884,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761235546795890}
   - component: {fileID: 6550761235546795889}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Shoes_Default_L01_Hisa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2626,7 +2949,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 97
+  m_SortingOrder: 5
   m_Sprite: {fileID: 21300000, guid: af4e62dad1aca9f43b78913b8a0bd9f3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -2648,7 +2971,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761235575880518}
   - component: {fileID: 6550761235575880517}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LEye_Dizzy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2713,7 +3036,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 111
+  m_SortingOrder: 8
   m_Sprite: {fileID: 21300000, guid: afcfc0a7e87b41145ad1df23271bb54e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -2735,7 +3058,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761235601194988}
   - component: {fileID: 6550761235601194995}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Hairpin_Hisa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2800,7 +3123,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 114
+  m_SortingOrder: 11
   m_Sprite: {fileID: 21300000, guid: 467eaba9c19ff094c8fa65a0c6979516, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -2821,7 +3144,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235700229819}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Acc
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2855,7 +3178,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761235702082078}
   - component: {fileID: 6550761235702082077}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: REye_Dizzy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2920,7 +3243,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 111
+  m_SortingOrder: 8
   m_Sprite: {fileID: 21300000, guid: afcfc0a7e87b41145ad1df23271bb54e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -2942,7 +3265,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761235705323071}
   - component: {fileID: 6550761235705323070}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: REye_Hurt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3007,7 +3330,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 111
+  m_SortingOrder: 8
   m_Sprite: {fileID: 21300000, guid: 17e5d18e42b82ad4782f0a2ec5916a6d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -3030,7 +3353,7 @@ GameObject:
   - component: {fileID: 6550761235745832908}
   - component: {fileID: 6550761235745832914}
   - component: {fileID: 6550761235745832915}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: LLeg_Default_01_Gra
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3096,7 +3419,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 90
+  m_SortingOrder: 4
   m_Sprite: {fileID: 21300000, guid: bc7b86fd5bb818f4188b07115ab71b45, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -3138,7 +3461,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235770091897}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig1_RLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3170,7 +3493,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235822222727}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Rig1_RHand_Open
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3202,8 +3525,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6550761235834957033}
   - component: {fileID: 6550761235834957039}
-  - component: {fileID: 6550761235834957032}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: REye_Open
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3219,7 +3541,7 @@ Transform:
   m_GameObject: {fileID: 6550761235834957034}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.7142843, w: 0.69985574}
-  m_LocalPosition: {x: 1.3764035, y: -0.3393581, z: 0}
+  m_LocalPosition: {x: 1.376403, y: -0.3393581, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3268,7 +3590,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 111
+  m_SortingOrder: 8
   m_Sprite: {fileID: 21300000, guid: 212d3580e7830914895fd76bf1f16f76, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -3280,25 +3602,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &6550761235834957032
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6550761235834957034}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57c008f954fe54a8bb972de1018a2cb8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_RootBone: {fileID: 0}
-  m_BoneTransforms: []
-  m_Bounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_AlwaysUpdate: 1
-  m_AutoRebind: 0
 --- !u!1 &6550761235875199947
 GameObject:
   m_ObjectHideFlags: 0
@@ -3308,7 +3611,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6550761235875199946}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Acc
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3340,7 +3643,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1465539681863685227}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: RShoes
   m_TagString: Untagged
   m_Icon: {fileID: 0}

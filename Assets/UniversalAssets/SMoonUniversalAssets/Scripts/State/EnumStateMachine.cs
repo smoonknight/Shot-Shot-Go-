@@ -16,12 +16,12 @@ public abstract class EnumStateMachine<T, G> : StateMachine<T> where T : Compone
     /// <summary>
     /// Set State as Prev State Type 
     /// </summary>
-    public void SetState(G type)
+    public void SetState(G type, bool dontCallLeave = false)
     {
         hasFirstSetState = true;
         PreviousType = LatestType;
         LatestType = type;
-        SetState(GetState(type));
+        SetState(GetState(type), dontCallLeave);
     }
 
     /// <summary>
