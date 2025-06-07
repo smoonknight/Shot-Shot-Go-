@@ -10,6 +10,9 @@ public abstract class WeaponItemController<T> : ItemController<T> where T : Item
     protected bool isPlayerAsMaster;
     protected StatProperty statProperty;
 
+    [SerializeField]
+    protected AudioSource attackingAudioSource;
+
     protected CancellationTokenSource attackingCancellationTokenSource;
 
     protected LayerMask targetMask;

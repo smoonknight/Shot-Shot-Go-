@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/SMoonAsset/Scene/Rogue Scene.unity
+    path: Assets/SMoonAsset/Scene/Scene_Rogue.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: dde864fc36454b244b37c2ba8855a40a, type: 3}

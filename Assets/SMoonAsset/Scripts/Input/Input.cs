@@ -22,6 +22,7 @@ public class Input : MonoBehaviour
     public InputAction CrouchAction { private set; get; }
     public InputAction InteractAction { private set; get; }
     public InputAction SwitchCursorAction { private set; get; }
+    public InputAction PauseAction { private set; get; }
 
     private void OnEnable()
     {
@@ -47,6 +48,7 @@ public class Input : MonoBehaviour
         CrouchAction = _currentMap.FindAction("Crouch");
         InteractAction = _currentMap.FindAction("Interact");
         SwitchCursorAction = _currentMap.FindAction("Switch Cursor");
+        PauseAction = _currentMap.FindAction("Pause");
 
         MoveAction.performed += OnMove;
         FireAction.performed += OnFire;

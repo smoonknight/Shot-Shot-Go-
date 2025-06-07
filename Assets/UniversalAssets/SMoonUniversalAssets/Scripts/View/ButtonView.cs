@@ -32,7 +32,8 @@ public class ButtonView : TextViewBase, IPointerEnterHandler, IPointerExitHandle
     void Action()
     {
         action?.Invoke();
-        SetSecondaryText(secondaryTextFunc?.Invoke());
+        if (secondaryTextFunc != null)
+            SetSecondaryText(secondaryTextFunc.Invoke());
     }
 
     public void ChangeInteractable(bool condition) => button.interactable = condition;

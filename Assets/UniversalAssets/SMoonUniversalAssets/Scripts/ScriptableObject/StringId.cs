@@ -19,4 +19,11 @@ public enum StringId
     MagicSwordDamage,
     MagicSwordJump,
     MagicSwordQuantity,
+    Pause,
+    Continue,
+    Settings,
+    MainMenu,
+    GameOver,
+    Restart,
+    Resurrect,
 }

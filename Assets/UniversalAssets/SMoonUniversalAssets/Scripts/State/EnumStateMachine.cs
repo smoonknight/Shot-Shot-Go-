@@ -3,30 +3,52 @@ using UnityEngine;
 
 public abstract class EnumStateMachine<T, G> : StateMachine<T> where T : Component where G : Enum
 {
-    G latestType;
-    T component;
+    public G LatestType { private set; get; }
+    public G PreviousType { private set; get; }
 
     bool hasFirstSetState;
     public void Initialize(T component, G initialStateType)
     {
-        this.component = component;
         InitializeState(component);
         SetState(initialStateType);
     }
 
+    /// <summary>
+    /// Set State as Prev State Type 
+    /// </summary>
     public void SetState(G type)
     {
         hasFirstSetState = true;
-        latestType = type;
+        PreviousType = LatestType;
+        LatestType = type;
         SetState(GetState(type));
     }
-    public void SetStateWhenDifference(G type)
+
+    /// <summary>
+    /// Set State as Prev State Type 
+    /// </summary>
+    /// <param name="alternativeType">use alternative type if previous equal latestType</param>
+    public void SetPrevState(G alternativeType)
     {
-        if (!hasFirstSetState || latestType.Equals(type))
+        if (!PreviousType.Equals(LatestType))
         {
-            return;
+            SetPrevState();
+        }
+        else
+        {
+            SetState(alternativeType);
+        }
+    }
+    public void SetPrevState() => SetState(PreviousType);
+
+    public bool SetStateWhenDifference(G type)
+    {
+        if (!hasFirstSetState || LatestType.Equals(type))
+        {
+            return false;
         }
         SetState(type);
+        return true;
     }
 
     protected abstract void InitializeState(T component);

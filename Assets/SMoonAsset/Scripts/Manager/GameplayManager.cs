@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Cinemachine;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class GameplayManager : Singleton<GameplayManager>
@@ -79,18 +81,39 @@ public class GameplayManager : Singleton<GameplayManager>
         return results;
     }
 
-    public void RaiseGameOver()
+    public async void RaisePause(PlayerController playerController)
     {
-        switch (currentGameModeType)
+        if (UIManager.Instance.IsPause)
         {
-            case GameModeType.Normal:
-                break;
-            case GameModeType.Rogue:
-                RogueManager.Instance.EnvironmentStop();
-                break;
-            default: throw new NotImplementedException();
+            return;
+        }
+
+        playerController.playerStateMachine.SetStateWhenDifference(PlayerStateType.Pause);
+        await UIManager.Instance.SetPause(true);
+        await UniTask.WaitUntil(() => !UIManager.Instance.IsPause);
+        playerController.playerStateMachine.SetPrevState(PlayerStateType.Play);
+    }
+
+    public async void RaiseGameOver(PlayerController playerController)
+    {
+        playerController.playerStateMachine.SetStateWhenDifference(PlayerStateType.Pause);
+        PostGameOverOptions? postGameOverOptions = await UIManager.Instance.SetGameOver();
+
+
+        switch (postGameOverOptions)
+        {
+            case PostGameOverOptions.Restart: TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Black, GetSceneEnumByGameMode()); break;
+            case PostGameOverOptions.Resurrect: playerController.playerStateMachine.SetState(PlayerStateType.Play); AudioExtendedManager.Instance.SetMusic(musicName); break;
+            case PostGameOverOptions.MainMenu: TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Loading, GetSceneEnumByGameMode()); break;
         }
     }
+
+    SceneEnum GetSceneEnumByGameMode() => currentGameModeType switch
+    {
+        GameModeType.Normal => throw new NotImplementedException(),
+        GameModeType.Rogue => SceneEnum.GAMEPLAY_ROGUE,
+        _ => throw new NotImplementedException(),
+    };
 }
 
 [Serializable]

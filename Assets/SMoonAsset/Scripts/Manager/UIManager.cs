@@ -16,9 +16,13 @@ public class UIManager : Singleton<UIManager>
     [SerializeField]
     private Canvas characterUpgradeCanvas;
     [SerializeField]
+    private CanvasGroup characterUpgradeCanvasGroup;
+    [SerializeField]
     private ChooseUpgradeSpawner chooseUpgradeSpawner;
     [SerializeField]
     private List<UpgradeSpriteProperty> upgradeSpriteProperties;
+    [SerializeField]
+    private List<Vector2> chooseUpgradeAnchoredPositions;
     [Space]
     [SerializeField]
     private TextMeshProUGUI levelText;
@@ -26,17 +30,65 @@ public class UIManager : Singleton<UIManager>
     [SerializeField]
     private Image experienceImageBar;
 
+    [Space]
+    [SerializeField]
+    private Button continueButton;
+    [SerializeField]
+    private Button settingsButton;
+    [SerializeField]
+    private Button mainMenuButton;
+    [SerializeField]
+    private Canvas pauseCanvas;
+    [SerializeField]
+    private CanvasGroup pauseCanvasGroup;
+
+    [Space]
+    [SerializeField]
+    private ButtonView gameOverRestartButtonView;
+    [SerializeField]
+    private ButtonView gameOverResurrectButtonView;
+    [SerializeField]
+    private ButtonView gameOverMainMenuButtonView;
+    [SerializeField]
+    private Canvas gameOverCanvas;
+    [SerializeField]
+    private CanvasGroup gameOverCanvasGroup;
+    [SerializeField]
+    private TextMeshProUGUI gameOverTooltipText;
+
     private List<HeartUIView> heartUIViews = new();
+
+    const int maximumChooseUpgrade = 3;
 
     float latestHeart;
     float latestMaximumHeart;
 
     const float heartRate = 10;
 
+    public bool IsPause { get; private set; }
+
+    private bool isProcessingPause;
+
+    private bool isProcessingGameOver;
+
     protected override void OnAwake()
     {
         base.OnAwake();
         chooseUpgradeSpawner.Initialize();
+    }
+
+    private void OnEnable()
+    {
+        continueButton.onClick.AddListener(async () => await SetPause(false));
+        settingsButton.onClick.AddListener(() => SetSettings(true));
+        mainMenuButton.onClick.AddListener(() => TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Loading, SceneEnum.MAINMENU));
+    }
+
+    private void OnDisable()
+    {
+        continueButton.onClick.RemoveListener(async () => await SetPause(false));
+        settingsButton.onClick.RemoveListener(() => SetSettings(true));
+        mainMenuButton.onClick.RemoveListener(() => TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Loading, SceneEnum.MAINMENU));
     }
 
     public void InitializePlayer(PlayerController playerController)
@@ -125,37 +177,177 @@ public class UIManager : Singleton<UIManager>
     public async UniTask<int> StartChooseUpgrade(PlayerController playerController, List<(UpgradeType upgradeType, UpgradeStat upgradeStat, int index)> values, bool startImmidietly, bool endImmidietly)
     {
         chooseUpgradeSpawner.HideSpawn();
-        bool isSelected = false;
-        int selectedIndex = 0;
+        var tcs = new UniTaskCompletionSource<int>();
         characterUpgradeCanvas.enabled = true;
 
         List<ImageButtonView> chooseUpgradeImageButtonViews = new();
 
-        for (int i = 0; i < values.Count; i++)
+        if (!startImmidietly)
+        {
+            UniTask.Void(async () => await AnimationFadedInOut(characterUpgradeCanvasGroup, 0, 1, 0.4f));
+        }
+
+        for (int i = 0; i < maximumChooseUpgrade; i++)
         {
             ImageButtonView imageButtonView = chooseUpgradeSpawner.GetSpawned();
+            imageButtonView.enabled = true;
             chooseUpgradeImageButtonViews.Add(imageButtonView);
         }
-        for (int i = 0; i < values.Count; i++)
+
+        for (int i = 0; i < maximumChooseUpgrade; i++)
         {
             ImageButtonView imageButtonView = chooseUpgradeImageButtonViews[i];
+            Vector2 anchor = chooseUpgradeAnchoredPositions[i];
+
+            if (!startImmidietly)
+            {
+                AnimationInChooseUpgrade(imageButtonView, anchor);
+            }
+            else
+            {
+                imageButtonView.rectTransform.anchoredPosition = anchor;
+            }
+
             (UpgradeType upgradeType, UpgradeStat upgradeStat, int index) value = values[i];
             Sprite sprite = GetSpriteByType(value.upgradeType);
             string titleText = LanguageManager.Instance.GetAddressableStringId(value.upgradeType).ToCommonLanguage();
             string descriptionText = LanguageManager.Instance.GetAddressableStringId(value.upgradeType, value.upgradeStat.type).ToCommonLangaugeWithReplector(value.upgradeStat.value);
-            imageButtonView.Initialize(sprite, titleText, descriptionText, () => OnChooseItem(playerController, chooseUpgradeImageButtonViews, imageButtonView, value, ref isSelected, ref selectedIndex, endImmidietly));
+
+            imageButtonView.Initialize(sprite, titleText, descriptionText, async () =>
+            {
+                playerController.UpgradeStatProperty(value.upgradeType, value.upgradeStat);
+
+                if (!endImmidietly)
+                {
+                    chooseUpgradeImageButtonViews.Remove(imageButtonView);
+                    imageButtonView.enabled = false;
+                    foreach (var chooseUpgradeImageButtonView in chooseUpgradeImageButtonViews)
+                    {
+                        await AnimationOutChooseUpgrade(chooseUpgradeImageButtonView);
+                    }
+                }
+                tcs.TrySetResult(value.index);
+            });
         }
 
-        await UniTask.WaitUntil(() => isSelected);
+        int selectedIndex = await tcs.Task;
+        if (!endImmidietly)
+        {
+            await AnimationFadedInOut(characterUpgradeCanvasGroup, 1, 0, 0.4f);
+        }
         characterUpgradeCanvas.enabled = false;
         return selectedIndex;
     }
 
-    private void OnChooseItem(PlayerController playerController, List<ImageButtonView> chooseUpgradeImageButtonViews, ImageButtonView selectedImageButtonView, (UpgradeType upgradeType, UpgradeStat upgradeStat, int index) value, ref bool isSelected, ref int selectedIndex, bool endImmidietly)
+    private async UniTask AnimationFadedInOut(CanvasGroup canvasGroup, float from, float to, float duration)
     {
-        playerController.UpgradeStatProperty(value.upgradeType, value.upgradeStat);
-        isSelected = true;
-        selectedIndex = value.index;
+        float time = 0;
+        while (time < duration)
+        {
+            if (canvasGroup == null)
+            {
+                return;
+            }
+            float easeValue = EaseFunctions.EaseOutQuad(time / duration);
+            canvasGroup.alpha = Mathf.Lerp(from, to, easeValue);
+
+            time += Time.unscaledDeltaTime;
+
+            await UniTask.Yield();
+        }
+    }
+
+    private async void AnimationInChooseUpgrade(ImageButtonView imageButtonView, Vector2 maxAnchorPosition)
+    {
+        imageButtonView.enabled = false;
+        await AnimationInOutChooseUpgrade(imageButtonView, maxAnchorPosition, 0, 1, 0.4f);
+        imageButtonView.enabled = true;
+    }
+
+    private async UniTask AnimationOutChooseUpgrade(ImageButtonView imageButtonView)
+    {
+        imageButtonView.enabled = false;
+        Vector2 maxAnchorPosition = imageButtonView.rectTransform.anchoredPosition;
+        await AnimationInOutChooseUpgrade(imageButtonView, maxAnchorPosition, 1, 0, 0.4f);
+        imageButtonView.enabled = true;
+    }
+
+    private async UniTask AnimationInOutChooseUpgrade(ImageButtonView imageButtonView, Vector2 maxAnchorPosition, float from, float to, float duration)
+    {
+        float time = 0;
+        Vector2 minAnchorPosition = new Vector2(maxAnchorPosition.x, maxAnchorPosition.y - 200);
+        CanvasGroup imageButtonCanvasGroup = imageButtonView.GetCanvasGroup();
+        RectTransform imageButtonRectTransform = imageButtonView.rectTransform;
+
+        while (time < duration)
+        {
+            if (imageButtonCanvasGroup == null)
+            {
+                return;
+            }
+
+            float easeValue = EaseFunctions.EaseOutQuad(time / duration);
+            float value = Mathf.Lerp(from, to, easeValue);
+            imageButtonCanvasGroup.alpha = value;
+            imageButtonRectTransform.anchoredPosition = Vector2.Lerp(minAnchorPosition, maxAnchorPosition, value);
+
+            time += Time.unscaledDeltaTime;
+
+            await UniTask.Yield();
+        }
+    }
+
+    public async UniTask SetPause(bool condition)
+    {
+        if (isProcessingPause)
+        {
+            return;
+        }
+        isProcessingPause = true;
+        if (condition)
+        {
+            IsPause = condition;
+            pauseCanvas.enabled = true;
+            await AnimationFadedInOut(pauseCanvasGroup, 0, 1, 0.4f);
+        }
+        else
+        {
+            await AnimationFadedInOut(pauseCanvasGroup, 1, 0, 0.4f);
+            pauseCanvas.enabled = false;
+            IsPause = condition;
+        }
+
+        isProcessingPause = false;
+    }
+
+    public void SetSettings(bool condition)
+    {
+    }
+
+    public async UniTask<PostGameOverOptions?> SetGameOver()
+    {
+        if (isProcessingGameOver)
+        {
+            return null;
+        }
+
+        gameOverCanvas.enabled = true;
+        isProcessingGameOver = true;
+
+        var tcs = new UniTaskCompletionSource<PostGameOverOptions>();
+
+        gameOverRestartButtonView.Initialize(() => tcs.TrySetResult(PostGameOverOptions.Restart));
+        gameOverResurrectButtonView.Initialize(() => tcs.TrySetResult(PostGameOverOptions.Resurrect));
+        gameOverMainMenuButtonView.Initialize(() => tcs.TrySetResult(PostGameOverOptions.MainMenu));
+
+        PostGameOverOptions postGameOverOptions = await tcs.Task;
+
+        await AnimationFadedInOut(gameOverCanvasGroup, 1, 0, 0.4f);
+
+        gameOverCanvas.enabled = false;
+        isProcessingGameOver = false;
+
+        return postGameOverOptions;
     }
 
     public Sprite GetSpriteByType(UpgradeType type) => upgradeSpriteProperties.Find(find => find.type == type).sprite;
@@ -175,5 +367,11 @@ public struct UpgradeSpriteProperty
 {
     public Sprite sprite;
     public UpgradeType type;
+}
+
+
+public enum PostGameOverOptions
+{
+    Restart, Resurrect, MainMenu
 }
 

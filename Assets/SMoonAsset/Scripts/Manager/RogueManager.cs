@@ -48,6 +48,17 @@ public class RogueManager : Singleton<RogueManager>
 
     int currentLevel = 1;
 
+
+    Dictionary<int, AudioName> countdownSFX = new()
+    {
+        { 3, AudioName.SFX_THREE },
+        { 2, AudioName.SFX_TWO },
+        { 1, AudioName.SFX_ONE },
+    };
+
+    readonly HashSet<int> played = new();
+
+
     protected override void OnAwake()
     {
         base.OnAwake();
@@ -162,6 +173,7 @@ public class RogueManager : Singleton<RogueManager>
             }
 
             // Transisi
+            played.Clear();
             float time = 0f;
             while (time < transitionEnvironmentChangeDuration)
             {
@@ -184,17 +196,11 @@ public class RogueManager : Singleton<RogueManager>
 
                 time += Time.deltaTime;
 
-                switch (transitionEnvironmentChangeDuration - Mathf.FloorToInt(time))
+                int remaining = (int)transitionEnvironmentChangeDuration - Mathf.FloorToInt(time);
+                if (countdownSFX.TryGetValue(remaining, out var sfx) && !played.Contains(remaining))
                 {
-                    case 3:
-                        AudioExtendedManager.Instance.Play(AudioName.SFX_THREE);
-                        break;
-                    case 2:
-                        AudioExtendedManager.Instance.Play(AudioName.SFX_TWO);
-                        break;
-                    case 1:
-                        AudioExtendedManager.Instance.Play(AudioName.SFX_ONE);
-                        break;
+                    AudioExtendedManager.Instance.Play(sfx);
+                    played.Add(remaining);
                 }
 
                 await UniTask.Yield();

@@ -332,7 +332,7 @@ public class EnemyController : PlayableCharacterControllerBase, ITrampolineable
         ValidateMove();
         WantToShoot();
         WantToSayNakama();
-        if (playerController != null && Vector2.Distance(groundCheck.position, playerController.transform.position) < playerDetection)
+        if (playerController != null && !playerController.IsDead && Vector2.Distance(groundCheck.position, playerController.transform.position) < playerDetection)
         {
             isWantToMoving = true;
             targetMovePosition = playerController.transform.position;

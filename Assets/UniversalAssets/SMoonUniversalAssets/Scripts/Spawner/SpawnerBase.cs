@@ -21,12 +21,14 @@ namespace SMoonUniversalAsset
             for (int i = 0; i < spawnProperties.Count; i++)
             {
                 G spawnProperty = spawnProperties[i];
-                T instance = UnityEngine.Object.Instantiate(spawnProperty.component, pool);
+                bool reinstanceComponent = spawnProperty.component.gameObject.scene.rootCount == 0;
+                T instance = reinstanceComponent ? UnityEngine.Object.Instantiate(spawnProperty.component, pool) : spawnProperty.component;
                 instance.gameObject.SetActive(false);
                 instance.name = spawnProperty.component.name;
 
                 spawnProperty.instance = instance;
             }
+
             int poolSize = GetInitialPoolSize();
             spawnedPropertyPool = new HashSet<G>(poolSize);
 

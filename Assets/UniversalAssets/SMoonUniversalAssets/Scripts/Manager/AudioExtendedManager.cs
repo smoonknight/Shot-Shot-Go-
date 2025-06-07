@@ -48,7 +48,7 @@ public class AudioExtendedManager : SingletonWithDontDestroyOnLoad<AudioExtended
         leanTweenLowpassId = LeanTween.value(currentValue, LowpassMixer(value), 0.5f).setOnUpdate((value) =>
         {
             SetAudioMixerParam(audioMixerGroupData.BGM, value, "Lowpass BGM");
-        }).id;
+        }).setIgnoreTimeScale(true).id;
     }
 
     public void SetAudioMixerBGMFocus(float value) => SetAudioMixerParam(audioMixerGroupData.BGM, FocusMixer(value), "FocusBGM");
@@ -421,7 +421,7 @@ public enum AudioName
     SFX_HEAL,
     SFX_THREE,
     SFX_TWO,
-    SFX_ONE
+    SFX_ONE,
 }
 
 public enum MusicName

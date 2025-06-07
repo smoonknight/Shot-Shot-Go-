@@ -233,8 +233,15 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
                 startDetectTarget = false;
                 return;
             }
-            if (TryDealDamageToTarget(damageable, false) && oneTimeDealDamage)
-                break;
+
+            if (TryDealDamageToTarget(damageable, false))
+            {
+                attackingAudioSource.Play();
+                if (oneTimeDealDamage)
+                {
+                    break;
+                }
+            }
 
             Vector2 oldPosition = transform.position;
             Vector2 moveVector = statProperty.speed * Time.deltaTime * (Vector2)transform.up;
@@ -312,6 +319,8 @@ public class MagicSwordItemController : WeaponItemController<MagicSwordItem>
 
         startDetectTarget = true;
         ResetAlreadyDamaged();
+
+        attackingAudioSource.Play();
 
         while (time < slashingDuration)
         {

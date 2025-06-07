@@ -309,13 +309,21 @@ public abstract class CharacterControllerBase : MonoBehaviour
     public void ColorChange(Color color)
     {
         foreach (var sr in spriteRenderers)
+        {
+            if (this == null)
+                break;
             sr.color = color;
+        }
     }
 
     public void AlphaChange(float opacity)
     {
         foreach (var sr in spriteRenderers)
+        {
+            if (this == null)
+                break;
             sr.SetOpacity(opacity);
+        }
     }
 
     public void ForceChangePosition(Vector2 position)

@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using SMoonUniversalAsset;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch;
 
 [RequireComponent(typeof(Input))]
 public class PlayerController : PlayableCharacterControllerBase
@@ -17,7 +18,7 @@ public class PlayerController : PlayableCharacterControllerBase
     private AudioClip deadAudioClip;
     private Input input;
 
-    private PlayerStateMachine playerStateMachine;
+    public PlayerStateMachine playerStateMachine { get; private set; }
 
     private TimeChecker attackIntervalTimeChecker = new();
 
@@ -44,12 +45,16 @@ public class PlayerController : PlayableCharacterControllerBase
     {
         base.OnEnable();
         input.JumpAction.performed += JumpActionPerformed;
+        input.PauseAction.performed += (ctx) => ValidatePause();
+        EnhancedTouchSupport.Enable();
     }
 
     protected override void OnDisable()
     {
         base.OnDisable();
         input.JumpAction.performed -= JumpActionPerformed;
+        input.PauseAction.performed -= (ctx) => ValidatePause();
+        EnhancedTouchSupport.Disable();
     }
 
     private void Update()
@@ -100,6 +105,13 @@ public class PlayerController : PlayableCharacterControllerBase
         return false;
     }
 
+    private void ValidatePause()
+    {
+        if (isExecuteUpgradeStat || IsDead)
+            return;
+        GameplayManager.Instance.RaisePause(this);
+    }
+
     private void MagneticCollectable()
     {
 
@@ -139,6 +151,7 @@ public class PlayerController : PlayableCharacterControllerBase
             if (!isExecuteUpgradeStat)
             {
                 isExecuteUpgradeStat = true;
+                playerStateMachine.SetStateWhenDifference(PlayerStateType.Pause);
                 ExecuteUpgradeStat();
             }
             UIManager.Instance.SetLevel(currentLevel);
@@ -182,12 +195,10 @@ public class PlayerController : PlayableCharacterControllerBase
             hasStart = true;
         }
 
-        Time.timeScale = 1;
-        GameManager.Instance.SetCursor(false);
+        playerStateMachine.SetPrevState(PlayerStateType.Play);
 
         isExecuteUpgradeStat = false;
     }
-    // TODO Lengkapi UI saat upgrade stat
 
     public void AddHealth(int health)
     {
@@ -232,17 +243,53 @@ public class PlayerController : PlayableCharacterControllerBase
                 break;
         }
     }
+    #region Pause State
+
+    private void PauseEnter()
+    {
+        Time.timeScale = 0;
+        GameManager.Instance.SetCursor(true);
+    }
+
+    private void PauseLeave()
+    {
+        Time.timeScale = 1;
+        GameManager.Instance.SetCursor(false);
+    }
+
+    public class PauseState : BaseState<PlayerController>
+    {
+        public PauseState(PlayerController component) : base(component)
+        {
+        }
+
+        public override void EnterState()
+        {
+            component.PauseEnter();
+        }
+
+        public override void FixedUpdateState()
+        {
+        }
+
+        public override void LeaveState()
+        {
+            component.PauseLeave();
+        }
+
+        public override void UpdateState()
+        {
+        }
+    }
+    #endregion
     #region Dead State
 
     private const float waitingToGameOverDuration = 2;
     TimeChecker waitingToGameOverTimeChecker = new();
 
-    bool hasRaiseGameOver;
-
     private void DeadEnter()
     {
         rigidBody.linearVelocity = Vector2.zero;
-        hasRaiseGameOver = false;
         waitingToGameOverTimeChecker.UpdateTime(waitingToGameOverDuration);
 
         audioSource.clip = deadAudioClip;
@@ -255,13 +302,12 @@ public class PlayerController : PlayableCharacterControllerBase
 
     private void DeadFixedUpdate()
     {
-        if (hasRaiseGameOver || !waitingToGameOverTimeChecker.IsDurationEnd())
+        if (!waitingToGameOverTimeChecker.IsDurationEnd())
         {
             return;
         }
 
-        hasRaiseGameOver = true;
-        GameplayManager.Instance.RaiseGameOver();
+        GameplayManager.Instance.RaiseGameOver(this);
     }
 
     private void DeadLeave()
@@ -302,6 +348,8 @@ public class PlayerController : PlayableCharacterControllerBase
     private void PlayStateEnter()
     {
         enableMove = true;
+        enableDoubleJump = true;
+        IsDead = false;
         rigidBody.constraints = RigidbodyConstraints2D.FreezeRotation;
     }
 
@@ -411,12 +459,14 @@ public class PlayerController : PlayableCharacterControllerBase
         private CutsceneState cutsceneState;
         private PlayState playState;
         private DeadState deadState;
+        private PauseState pauseState;
 
         protected override void InitializeState(PlayerController playerController)
         {
             cutsceneState = new(playerController);
             playState = new(playerController);
             deadState = new(playerController);
+            pauseState = new(playerController);
         }
 
         protected override BaseState<PlayerController> GetState(PlayerStateType type) => type switch
@@ -424,6 +474,7 @@ public class PlayerController : PlayableCharacterControllerBase
             PlayerStateType.Cutscene => cutsceneState,
             PlayerStateType.Play => playState,
             PlayerStateType.Dead => deadState,
+            PlayerStateType.Pause => pauseState,
             _ => throw new System.NotImplementedException(),
         };
     }
@@ -432,6 +483,5 @@ public class PlayerController : PlayableCharacterControllerBase
 
 public enum PlayerStateType
 {
-    Cutscene, Play,
-    Dead
+    Cutscene, Play, Dead, Pause
 }
