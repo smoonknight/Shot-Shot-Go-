@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
@@ -42,7 +41,6 @@ public class Input : MonoBehaviour
 
         EnhancedTouchSupport.Enable();
         _currentMap.Enable();
-
     }
 
     private void OnDisable()

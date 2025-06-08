@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Cinemachine;
 using Cysharp.Threading.Tasks;
 using SMoonUniversalAsset;
+using TMPro;
 using UnityEngine;
 
 public class MainMenuManager : Singleton<MainMenuManager>
@@ -9,6 +10,7 @@ public class MainMenuManager : Singleton<MainMenuManager>
     public ButtonView startButtonView;
     public ButtonView settingsButtonView;
     public ButtonView exitButtonView;
+    public TextMeshProUGUI controlGuideText;
 
     async void OnEnable()
     {
@@ -18,6 +20,12 @@ public class MainMenuManager : Singleton<MainMenuManager>
         exitButtonView.Initialize(Application.Quit);
 
         Time.timeScale = 1;
+
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+        controlGuideText.enabled = true;
+#else
+        controlGuideText.enabled = false;
+#endif
         GameManager.Instance.SetCursor(true);
     }
 

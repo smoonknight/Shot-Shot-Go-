@@ -33,7 +33,6 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
     public int MaximumHealth => characterStatProperty.health;
 
     private CancellationTokenSource immuneCancellationTokenSource;
-    private bool hasOnZeroHealth;
 
     protected override void Awake()
     {
@@ -54,7 +53,6 @@ public abstract class PlayableCharacterControllerBase : CharacterControllerBase,
 
     public virtual void SetupPlayable()
     {
-        hasOnZeroHealth = false;
         ColorChange(Color.white);
         AlphaChange(1);
         magicSwordTypeStatPropertyCollector.SetTypeUpgradeProperties(GameManager.Instance.GetCopyOfDefaultMagicSwordTypeUpgradeProperties());

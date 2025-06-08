@@ -1,7 +1,6 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using SMoonUniversalAsset;
-using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 using UniTaskExtensions = SMoonUniversalAsset.UniTaskExtensions;
 

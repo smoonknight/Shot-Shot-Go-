@@ -123,7 +123,7 @@ public class GameplayManager : Singleton<GameplayManager>
                 playerController.playerStateMachine.SetState(PlayerStateType.Play);
                 AudioExtendedManager.Instance.SetMusic(musicName);
                 break;
-            case PostGameOverOptions.MainMenu: TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Loading, GetSceneEnumByGameMode()); break;
+            case PostGameOverOptions.MainMenu: TransitionManager.Instance.SetTransitionOnSceneManager(TransitionType.Loading, SceneEnum.MAINMENU); break;
         }
     }
 

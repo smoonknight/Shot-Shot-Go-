@@ -337,7 +337,6 @@ public class UIManager : Singleton<UIManager>
         }
 
         GameManager.Instance.SetCursor(false);
-
         isProcessingPause = false;
     }
 
@@ -379,13 +378,19 @@ public class UIManager : Singleton<UIManager>
         gameOverCanvas.enabled = false;
         isProcessingGameOver = false;
 
+        SetToolTip(false);
+
         return postGameOverOptions;
     }
 
-    void SetToolTip(Vector2 screenPosition, bool condition, string text)
+    void SetToolTip(bool enabled)
     {
-        tooltipText.enabled = condition;
-        if (!condition)
+        tooltipText.enabled = enabled;
+    }
+    void SetToolTip(Vector2 screenPosition, bool enabled, string text)
+    {
+        SetToolTip(enabled);
+        if (!enabled)
         {
             return;
         }
