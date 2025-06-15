@@ -21,10 +21,11 @@
 
 ## How to Play
 
-1. Run the game in Unity or on your target platform.
-2. Use the on-screen joystick (for mobile) or keyboard (for PC) to control the character.
-3. Eliminate enemies by shooting them.
-4. Reach the end of the level to complete the stage.
+1. Start the game and dive into an endless roguelike run.
+2. Defeat enemies to earn experience or points.
+3. Choose upgrades between stages to enhance your character’s abilities — stronger attacks, faster movement, better survivability, and more.
+4. The game gets progressively harder the longer you survive.
+5. There is no final level — test how long you can survive and how powerful your character can become.
 
 ---
 
