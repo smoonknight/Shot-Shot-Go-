@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 
+[RequireComponent(typeof(PlayerInput))]
 public class Input : MonoBehaviour
 {
     [SerializeField] private PlayerInput playerInput;
